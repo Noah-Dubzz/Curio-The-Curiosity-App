@@ -69,6 +69,13 @@
           <div class="empty-state">Nothing learned yet.<br />Start chatting!</div>
         </div>
       </div>
+
+      <!-- Navigation tabs -->
+      <div class="sidebar-nav">
+        <button class="nav-tab active" data-view="chat">[*] Curio</button>
+        <button class="nav-tab"        data-view="cbox">[+] Curiosity Box</button>
+      </div>
+
       <div class="sidebar-footer">
         <button class="btn-ghost" id="new-chat-btn">New Chat</button>
         <button class="btn-ghost btn-ghost-danger" id="reset-btn">Reset</button>
@@ -91,31 +98,48 @@
         </div>
       </div>
 
-      <div id="messages" class="messages">
-        <div class="welcome-message" id="welcome-msg">
-          <div class="welcome-icon">^_^</div>
-          <h2>HI, I'M CURIO!</h2>
-          <p>What would you like to learn?</p>
+      <!-- Chat view panel -->
+      <div id="view-chat" class="view-panel">
+        <div id="messages" class="messages">
+          <div class="welcome-message" id="welcome-msg">
+            <div class="welcome-icon">^_^</div>
+            <h2>HI, I'M CURIO!</h2>
+            <p>What would you like to learn?</p>
+          </div>
+        </div>
+
+        <div id="typing-indicator" class="typing-indicator hidden">
+          <div class="typing-bubble">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="typing-text">Curio is thinking...</span>
+        </div>
+
+        <div class="input-area">
+          <div class="input-row">
+            <button class="icon-btn" id="mic-btn" title="Speak your question">(@) MIC</button>
+            <input type="text" id="chat-input" placeholder="Ask Curio..." />
+            <button class="send-btn" id="send-btn" title="Send">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div id="typing-indicator" class="typing-indicator hidden">
-        <div class="typing-bubble">
-          <span></span><span></span><span></span>
-        </div>
-        <span class="typing-text">Curio is thinking...</span>
-      </div>
-
-      <div class="input-area">
-        <div class="input-row">
-          <button class="icon-btn" id="mic-btn" title="Speak your question">(@) MIC</button>
-          <input type="text" id="chat-input" placeholder="Ask Curio..." />
-          <button class="send-btn" id="send-btn" title="Send">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
+      <!-- Curiosity Box view panel -->
+      <div id="view-cbox" class="view-panel hidden">
+        <div class="cbox-body">
+          <p class="cbox-desc">Add words, topics, or interests. Curio will weave them into your learning.</p>
+          <div class="cbox-add-row">
+            <input type="text" id="cbox-input" placeholder="e.g. Fortnite, Python, music theory" />
+            <button class="cbox-add-btn" id="cbox-add-btn">+ Add</button>
+          </div>
+          <div class="cbox-grid" id="cbox-grid">
+            <div class="empty-state cbox-empty">Your Curiosity Box is empty.<br/>Add something!</div>
+          </div>
         </div>
       </div>
     </main>

@@ -8,11 +8,51 @@
   <link rel="icon" type="image/png" href="favicon.png" sizes="48x48" />
   <link rel="apple-touch-icon" href="favicon.png" />
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Firebase SDKs (Google Sign-In / Cloud Sync) -->
+  <script type="module">
+    import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyCurioDemoKey_ReplaceWithReal",
+      authDomain:        "curio-app.firebaseapp.com",
+      projectId:         "curio-app",
+      storageBucket:     "curio-app.appspot.com",
+      messagingSenderId: "000000000000",
+      appId:             "1:000000000000:web:0000000000000000000000"
+    };
+
+    const fbApp  = initializeApp(firebaseConfig);
+    const auth   = getAuth(fbApp);
+    const db     = getFirestore(fbApp);
+    const provider = new GoogleAuthProvider();
+
+    // Expose to app.js
+    window._curio_auth     = auth;
+    window._curio_db       = db;
+    window._curio_provider = provider;
+    window._curio_signIn   = () => signInWithPopup(auth, provider);
+    window._curio_signOut  = () => signOut(auth);
+    window._curio_saveCloud = async (uid, data) => {
+      await setDoc(doc(db, 'users', uid), data, { merge: true });
+    };
+    window._curio_loadCloud = async (uid) => {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? snap.data() : null;
+    };
+    onAuthStateChanged(auth, user => {
+      window.dispatchEvent(new CustomEvent('curio-auth-changed', { detail: user }));
+    });
+  </script>
 </head>
 <body>
 
   <!-- ===== SETUP SCREEN ===== -->
-  <div id="setup-screen" class="setup-screen">
+  <div id="setup-screen" class="setup-screen hidden">
     <div class="setup-card">
       <div class="setup-logo">
         <div class="logo-icon">:^)</div>
@@ -29,6 +69,13 @@
           <input type="text" id="setup-background" placeholder="e.g., Computer Science student at Georgia State" />
         </div>
         <button id="setup-btn" class="btn-primary">Start Learning -></button>
+
+        <!-- Google Sign-In option on setup -->
+        <div class="setup-divider"><span>or</span></div>
+        <button id="setup-google-btn" class="btn-google">
+          <span class="google-g">G</span> Continue with Google
+        </button>
+        <p class="setup-google-hint">Syncs your data across all devices</p>
       </div>
     </div>
   </div>
@@ -43,6 +90,7 @@
         <span class="brand-name">Curio</span>
       </div>
 
+      <!-- User info + Google account -->
       <div class="user-card">
         <div class="user-avatar" id="user-avatar-text">?</div>
         <div class="user-info">
@@ -51,9 +99,21 @@
             <span class="gem-icon">&lt;&gt;</span>
             <span id="gems-count">0</span> gems
           </div>
+          <!-- Google account status -->
+          <div class="google-status" id="google-status">
+            <button class="google-connect-btn" id="google-connect-btn">Connect Google -></button>
+          </div>
         </div>
       </div>
 
+      <!-- Navigation tabs -->
+      <div class="sidebar-nav">
+        <button class="nav-tab active" id="nav-curio"   data-view="chat">    [*] Curio</button>
+        <button class="nav-tab"        id="nav-cbox"    data-view="cbox">    [+] Curiosity Box</button>
+        <button class="nav-tab"        id="nav-memory"  data-view="memory">  [#] Memory Game</button>
+      </div>
+
+      <!-- Knowledge Bank (visible on all views) -->
       <div class="sidebar-section">
         <div class="section-title">Knowledge Bank</div>
         <div id="knowledge-bank" class="knowledge-bank">
@@ -70,8 +130,10 @@
     <!-- Mobile sidebar backdrop -->
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-    <!-- Chat -->
-    <main class="chat-area">
+    <!-- ===== VIEWS (only one shown at a time) ===== -->
+
+    <!-- VIEW: Chat -->
+    <main class="chat-area view-panel" id="view-chat">
       <div class="chat-header">
         <button class="menu-btn" id="menu-btn" title="Toggle sidebar">&#9632;</button>
         <div class="chat-title">
@@ -102,11 +164,7 @@
       <div class="input-area">
         <div class="input-row">
           <button class="icon-btn" id="mic-btn" title="Hold to speak  -  voice input">(@) MIC</button>
-          <input
-            type="text"
-            id="chat-input"
-            placeholder="Ask Curio something..."
-          />
+          <input type="text" id="chat-input" placeholder="Ask Curio something..." />
           <button class="send-btn" id="send-btn" title="Send">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -116,7 +174,105 @@
         </div>
       </div>
     </main>
-  </div>
+
+    <!-- VIEW: Curiosity Box -->
+    <main class="view-panel hidden" id="view-cbox">
+      <div class="chat-header">
+        <button class="menu-btn" id="menu-btn-cbox" title="Toggle sidebar">&#9632;</button>
+        <div class="chat-title">
+          <span class="status-dot"></span>
+          CURIOSITY BOX
+        </div>
+      </div>
+      <div class="cbox-body">
+        <div class="cbox-desc">
+          Topics and words you add here will be used by Curio and the Memory Game to personalize your experience.
+        </div>
+
+        <div class="cbox-add-row">
+          <input type="text" id="cbox-input" placeholder="Add a topic, word, or idea..." maxlength="80" />
+          <button class="btn-primary btn-primary-sm" id="cbox-add-btn">Add</button>
+        </div>
+
+        <div class="cbox-grid-label">Your Collection</div>
+        <div id="cbox-grid" class="cbox-grid">
+          <div class="empty-state cbox-empty">Your Curiosity Box is empty.<br />Add something!</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- VIEW: Memory Game -->
+    <main class="view-panel hidden" id="view-memory">
+      <div class="chat-header">
+        <button class="menu-btn" id="menu-btn-memory" title="Toggle sidebar">&#9632;</button>
+        <div class="chat-title">
+          <span class="status-dot"></span>
+          MEMORY GAME
+        </div>
+        <div class="header-controls">
+          <span class="icon-btn" id="memory-score-display">Score: 0</span>
+        </div>
+      </div>
+      <div class="memory-body" id="memory-body">
+        <!-- Lobby screen -->
+        <div id="memory-lobby" class="memory-lobby">
+          <div class="memory-lobby-icon">( * _ * )</div>
+          <h2>Memory Game</h2>
+          <p>Answer questions from your Knowledge Bank and Curiosity Box. Get them right to score gems!</p>
+          <p class="memory-lobby-hint" id="memory-pool-hint">Loading question pool...</p>
+          <button class="btn-primary" id="memory-start-btn" style="max-width:280px;margin-top:20px">Start Game</button>
+        </div>
+
+        <!-- Active game -->
+        <div id="memory-game" class="memory-game hidden">
+          <!-- Question card -->
+          <div class="memory-card">
+            <div class="memory-card-header">
+              <div class="mac-titlebar-style">
+                <div class="mac-close-box" id="memory-quit-btn" title="Quit game"></div>
+                <span class="memory-round-label" id="memory-round-label">Round 1 / 10</span>
+              </div>
+            </div>
+            <div class="memory-question-area">
+              <div class="memory-topic-tag" id="memory-topic-tag">Topic</div>
+              <div class="memory-question" id="memory-question">...</div>
+            </div>
+          </div>
+
+          <!-- Answers -->
+          <div class="memory-answers" id="memory-answers"></div>
+
+          <!-- Feedback + next -->
+          <div class="memory-feedback hidden" id="memory-feedback">
+            <div class="memory-feedback-text" id="memory-feedback-text"></div>
+            <button class="btn-primary btn-primary-sm" id="memory-next-btn" style="margin-top:12px">Next -></button>
+          </div>
+
+          <!-- Mini-game overlay -->
+          <div id="memory-minigame-overlay" class="memory-minigame-overlay hidden">
+            <div class="memory-minigame-card">
+              <div class="mac-titlebar-style">
+                <div class="mac-close-box" id="memory-skip-minigame"></div>
+                <span id="memory-mg-title" class="memory-mg-title">Mini-Game</span>
+              </div>
+              <p id="memory-mg-desc" class="memory-mg-desc"></p>
+              <div id="memory-mg-arena" class="memory-mg-arena"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game over -->
+        <div id="memory-gameover" class="memory-gameover hidden">
+          <div class="memory-gameover-icon" id="memory-gameover-icon">\o/</div>
+          <h2 id="memory-gameover-title">Game Over!</h2>
+          <p id="memory-gameover-result"></p>
+          <div class="memory-gameover-stats" id="memory-gameover-stats"></div>
+          <button class="btn-primary" id="memory-play-again-btn" style="max-width:240px;margin-top:20px">Play Again</button>
+        </div>
+      </div>
+    </main>
+
+  </div><!-- /#app -->
 
   <!-- ===== QUIZ MODAL ===== -->
   <div id="quiz-modal" class="modal hidden">
