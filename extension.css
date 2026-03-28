@@ -498,6 +498,14 @@ html, body {
   box-shadow: 2px 2px 0 #000;
 }
 
+/* TTS active: teal tint matching the Mac desktop palette */
+.message.bot .message-bubble.tts-active {
+  background: #d4f0ef;
+  color: #003333;
+  border-color: #008080;
+  box-shadow: 2px 2px 0 #008080;
+}
+
 .message-time {
   font-family: 'VT323', 'Courier New', monospace;
   font-size: 11px;

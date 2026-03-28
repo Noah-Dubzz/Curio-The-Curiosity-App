@@ -116,6 +116,7 @@ function addMessage(text, role) {
 
   const bubble = document.createElement('div');
   bubble.className = 'message-bubble';
+  if (role === 'bot' && ttsEnabled) bubble.classList.add('tts-active');
   bubble.innerHTML = formatMessage(text);
 
   const time = document.createElement('div');
@@ -476,7 +477,12 @@ function closeQuiz() {
 // ── Text-to-Speech ────────────────────────────────────────────
 function toggleTTS() {
   ttsEnabled = !ttsEnabled;
-  document.getElementById('tts-btn').classList.toggle('active', ttsEnabled);
+  const btn = document.getElementById('tts-btn');
+  if (btn) btn.classList.toggle('active', ttsEnabled);
+  // Tint bot message bubbles when TTS is active so the user can see which voice
+  document.querySelectorAll('.message.bot .message-bubble').forEach(el => {
+    el.classList.toggle('tts-active', ttsEnabled);
+  });
   if (!ttsEnabled) speechSynthesis.cancel();
 }
 
@@ -530,7 +536,6 @@ function toggleMic() {
   };
 
   recognition.onresult = (e) => {
-    // Show interim results as placeholder while user speaks
     let interim = '';
     let final   = '';
     for (let i = 0; i < e.results.length; i++) {
@@ -540,21 +545,31 @@ function toggleMic() {
     if (chatInput) chatInput.value = final || interim;
   };
 
-  recognition.onend    = () => {
+  recognition.onend = () => {
     isRecording = false;
     if (micBtn) micBtn.classList.remove('recording');
     if (chatInput) {
       chatInput.placeholder = 'Ask Curio something\u2026';
-      chatInput.focus();
     }
     recognition = null;
+    // Auto-send if there's a transcript
+    if (chatInput && chatInput.value.trim()) {
+      sendMessage();
+    }
   };
 
-  recognition.onerror  = () => {
+  recognition.onerror = (e) => {
     isRecording = false;
     if (micBtn) micBtn.classList.remove('recording');
     if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
     recognition = null;
+    if (e.error === 'not-allowed') {
+      alert('Microphone access was blocked. Please allow mic access in your browser\u2019s site settings and try again.');
+    } else if (e.error === 'no-speech') {
+      // Silently reset — user just didn't speak
+    } else {
+      console.warn('Speech recognition error:', e.error);
+    }
   };
 
   recognition.start();
