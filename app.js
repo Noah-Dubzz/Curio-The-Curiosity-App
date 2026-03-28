@@ -1152,7 +1152,7 @@ Rules:
 
   const data = await geminiRequest({
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.9, maxOutputTokens: 300 }
+    generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
   });
 
   const raw   = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
