@@ -322,7 +322,7 @@ function handleLearned(topic) {
   localStorage.setItem('curio_gems', String(gems));
   document.getElementById('gems-count').textContent = gems;
 
-  showToast(`+${earned} 💎 You learned ${topic}!`);
+  showToast(`+${earned} <> You learned ${topic}!`);
 
   // Offer a quiz after a short delay
   currentQuizTopic = topic;
@@ -434,7 +434,7 @@ async function submitQuiz() {
       gems += 200;
       localStorage.setItem('curio_gems', String(gems));
       document.getElementById('gems-count').textContent = gems;
-      showToast('+200 💎 Bonus gems! Great answer!');
+      showToast('+200 <> Bonus gems! Great answer!');
     }
 
     // Show feedback in place of the textarea
