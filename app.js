@@ -11,7 +11,8 @@ let knowledgeBank   = [];
 let gems            = 0;
 let ttsEnabled      = false;
 let isRecording     = false;
-let recognition     = null;
+let mediaRecorder   = null;
+let audioChunks     = [];
 let currentQuizTopic    = '';
 let currentQuizQuestion = '';
 let awaitingResponse    = false;
@@ -506,93 +507,117 @@ function speak(text) {
   speechSynthesis.speak(utter);
 }
 
-// ── Voice Input ───────────────────────────────────────────────
+//  Voice Input (MediaRecorder  Gemini transcription) 
+// Web Speech API (webkitSpeechRecognition) is blocked in Chrome MV3 extensions.
+// We record raw audio with MediaRecorder, send it to the Netlify transcribe
+// function, and Gemini returns the transcript.
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary  = '';
+  const CHUNK = 8192;
+  for (let i = 0; i < bytes.byteLength; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
+
 async function toggleMic() {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert('Voice input is not supported in this browser. Please use Chrome.');
+  // Second tap: stop recording and trigger transcription
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
     return;
   }
 
-  if (isRecording) {
-    recognition?.stop();
-    return;
-  }
-
-  // Explicitly request mic permission first — Chrome extension popups can
-  // dismiss the SpeechRecognition prompt silently if the popup loses focus
+  // Request mic permission
+  let stream;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    stream.getTracks().forEach(t => t.stop()); // only needed the permission grant
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch (permErr) {
     if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
-      alert('Microphone access was blocked. Please allow mic access in your browser\'s site settings and try again.');
+      alert("Microphone access was blocked. Please allow mic access in your browser's site settings and try again.");
     } else {
       alert('Could not access microphone: ' + permErr.message);
     }
     return;
   }
 
-  recognition            = new SpeechRecognition();
-  recognition.continuous     = false;
-  recognition.interimResults = true;
-  recognition.lang           = 'en-US';
-
   const chatInput = document.getElementById('chat-input');
   const micBtn    = document.getElementById('mic-btn');
 
-  recognition.onstart  = () => {
+  // Pick the best supported MIME type
+  const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', '']
+    .find(t => t === '' || MediaRecorder.isTypeSupported(t));
+
+  audioChunks   = [];
+  mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+
+  mediaRecorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) audioChunks.push(e.data);
+  };
+
+  mediaRecorder.onstart = () => {
     isRecording = true;
     if (micBtn) micBtn.classList.add('recording');
     if (chatInput) {
-      chatInput.placeholder = '( Listening... )';
+      chatInput.placeholder = '( Recording... tap mic again to send )';
       chatInput.value = '';
     }
-    showToast('( Listening... )');
+    showToast('( Recording... tap mic again to send )');
   };
 
-  recognition.onresult = (e) => {
-    let interim = '';
-    let final   = '';
-    for (let i = 0; i < e.results.length; i++) {
-      if (e.results[i].isFinal) final   += e.results[i][0].transcript;
-      else                       interim += e.results[i][0].transcript;
-    }
-    if (chatInput) chatInput.value = final || interim;
-  };
-
-  recognition.onend = () => {
+  mediaRecorder.onstop = async () => {
     isRecording = false;
+    stream.getTracks().forEach(t => t.stop());
     if (micBtn) micBtn.classList.remove('recording');
-    if (chatInput) {
-      chatInput.placeholder = 'Ask Curio something\u2026';
+
+    if (!audioChunks.length) {
+      if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
+      return;
     }
-    recognition = null;
-    // Auto-send if there's a transcript
-    if (chatInput && chatInput.value.trim()) {
-      sendMessage();
+
+    if (chatInput) chatInput.placeholder = '( Transcribing... )';
+    showToast('( Transcribing... )');
+
+    try {
+      const blob         = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      const safeMimeType = blob.type.split(';')[0]; // strip codec params for Gemini
+      const arrayBuffer  = await blob.arrayBuffer();
+      const audioData    = arrayBufferToBase64(arrayBuffer);
+
+      const isExtension   = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
+      const transcribeURL = isExtension
+        ? 'https://hacklantacurio.netlify.app/api/transcribe'
+        : '/api/transcribe';
+
+      const res    = await fetch(transcribeURL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ audioData, mimeType: safeMimeType })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Transcription failed');
+
+      const transcript = result.transcript?.trim() || '';
+      if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
+      if (transcript) {
+        chatInput.value = transcript;
+        sendMessage();
+      } else {
+        showToast('( No speech detected \u2014 try again )');
+      }
+    } catch (err) {
+      console.error('Transcription error:', err);
+      if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
+      showToast('( Transcription failed \u2014 try again )');
     }
+
+    audioChunks   = [];
+    mediaRecorder = null;
   };
 
-  recognition.onerror = (e) => {
-    isRecording = false;
-    if (micBtn) micBtn.classList.remove('recording');
-    if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
-    recognition = null;
-    if (e.error === 'not-allowed') {
-      alert('Microphone access was blocked. Please allow mic access in your browser\u2019s site settings and try again.');
-    } else if (e.error === 'no-speech') {
-      // Silently reset — user just didn't speak
-    } else {
-      console.warn('Speech recognition error:', e.error);
-    }
-  };
-
-  recognition.start();
+  mediaRecorder.start();
 }
-
 // ── Sidebar Toggle ────────────────────────────────────────────
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('collapsed');
