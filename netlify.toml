@@ -1,0 +1,16 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Redirect /api/gemini → the serverless function
+# The frontend never knows the difference
+[[redirects]]
+  from = "/api/gemini"
+  to   = "/.netlify/functions/gemini"
+  status = 200
+
+# Serve index.html for all other routes (SPA fallback)
+[[redirects]]
+  from = "/*"
+  to   = "/index.html"
+  status = 200
