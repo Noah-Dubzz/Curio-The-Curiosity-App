@@ -1264,6 +1264,7 @@ async function handleMemoryAnswer(chosen, correct, topic, clickedBtn) {
 
     document.getElementById('memory-feedback-text').textContent = '+50 gems! Correct!';
     document.getElementById('memory-feedback').classList.remove('hidden');
+    document.getElementById('memory-next-btn').classList.remove('hidden');
   } else {
     clickedBtn.classList.add('memory-answer-wrong');
     playMemorySound('error');
