@@ -20,7 +20,8 @@ let currentQuizQuestion = '';
 let awaitingResponse    = false;
 
 // Memory Game state
-let memoryQuestions  = [];   // [{topic, question, choices, correct}]
+let memoryQuestions  = [];   // [{topic, question, choices, correct}] built up round by round
+let memoryTopicPool  = [];   // shuffled topic pool for current game
 let memoryRound      = 0;
 let memoryScore      = 0;
 const MEMORY_ROUNDS  = 10;
@@ -1114,7 +1115,7 @@ function updateMemoryLobbyHint() {
   }
 }
 
-async function startMemoryGame() {
+function startMemoryGame() {
   const pool = [...knowledgeBank, ...curiosityBox];
   if (pool.length === 0) return;
 
@@ -1122,104 +1123,89 @@ async function startMemoryGame() {
   document.getElementById('memory-gameover').classList.add('hidden');
   document.getElementById('memory-game').classList.remove('hidden');
 
-  memoryRound = 0;
-  memoryScore = 0;
+  memoryRound     = 0;
+  memoryScore     = 0;
   memoryQuestions = [];
+  memoryTopicPool = [...pool].sort(() => Math.random() - 0.5);
   updateMemoryScoreDisplay();
-
-  // Show loading state
-  document.getElementById('memory-question').textContent  = 'Generating questions...';
-  document.getElementById('memory-topic-tag').textContent = '...';
-  document.getElementById('memory-answers').innerHTML     = '';
-  document.getElementById('memory-feedback').classList.add('hidden');
-  document.getElementById('memory-round-label').textContent = `Loading...`;
-
-  // Generate question batch from AI
-  try {
-    const topicsToUse = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(pool.length, MEMORY_ROUNDS));
-    memoryQuestions   = await generateMemoryQuestions(topicsToUse, MEMORY_ROUNDS);
-  } catch (err) {
-    // Fallback: make simple recall questions
-    memoryQuestions = buildFallbackQuestions([...knowledgeBank, ...curiosityBox], MEMORY_ROUNDS);
-  }
 
   showMemoryRound();
 }
 
-async function generateMemoryQuestions(topics, count) {
-  const topicList = topics.slice(0, count).map((t, i) => `${i+1}. "${t}"`).join('\n');
+// Generate one question on-demand per round so questions are always AI-made and unique
+async function generateSingleQuestion(topic, alreadyAsked) {
+  const avoidCtx = alreadyAsked.length > 0
+    ? `\nDo NOT repeat or closely resemble these already-asked questions:\n${alreadyAsked.map(q => `- ${q.question}`).join('\n')}`
+    : '';
 
-  const prompt = `You are creating a multiple-choice quiz for a learning app. Generate exactly ${count} questions, one per topic where possible (reuse topics if needed to fill ${count}).
+  const prompt = `Create one multiple-choice quiz question that tests real understanding of "${topic}".${avoidCtx}
 
-Topics:
-${topicList}
-
-For each question output EXACTLY this JSON format (an array of ${count} objects):
-[
-  {
-    "topic": "topic name",
-    "question": "question text?",
-    "choices": ["A) option1", "B) option2", "C) option3", "D) option4"],
-    "correct": "A"
-  }
-]
+Return ONLY this JSON object — no markdown, no extra text:
+{"topic":"${topic.replace(/"/g, '\\"')}","question":"question text here?","choices":["A) first option","B) second option","C) third option","D) fourth option"],"correct":"B"}
 
 Rules:
-- Questions should test understanding, not just recall
-- Wrong choices should be plausible but clearly incorrect to someone who knows the topic
-- Keep questions concise (one sentence)
-- Return ONLY the JSON array, no other text`;
+- Test conceptual understanding, NOT just word recognition
+- All 4 answer choices must be plausible and on-topic (no obviously silly wrong answers)
+- One concise sentence for the question
+- The correct answer letter should vary (don't always use A)
+- Base the question on what someone learning this topic would actually need to know`;
 
   const data = await geminiRequest({
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
+    generationConfig: { temperature: 0.9, maxOutputTokens: 300 }
   });
 
-  const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  // Extract JSON from the response (Gemini sometimes wraps it in markdown)
-  const jsonMatch = raw.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error('No JSON in response');
-  return JSON.parse(jsonMatch[0]);
-}
-
-function buildFallbackQuestions(topics, count) {
-  const questions = [];
-  for (let i = 0; i < count; i++) {
-    const topic = topics[i % topics.length];
-    questions.push({
-      topic,
-      question: `Which of the following best describes "${topic}"?`,
-      choices: [
-        `A) A concept related to ${topic}`,
-        `B) Something unrelated to ${topic}`,
-        `C) The opposite of ${topic}`,
-        `D) A synonym for a different field`
-      ],
-      correct: 'A'
-    });
+  const raw   = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('No JSON');
+  const q = JSON.parse(match[0]);
+  if (!q.question || !Array.isArray(q.choices) || q.choices.length !== 4 || !q.correct) {
+    throw new Error('Invalid structure');
   }
-  return questions;
+  return q;
 }
 
-function showMemoryRound() {
-  if (memoryRound >= memoryQuestions.length) {
+async function showMemoryRound() {
+  if (memoryRound >= MEMORY_ROUNDS) {
     endMemoryGame();
     return;
   }
 
-  const q = memoryQuestions[memoryRound];
-  document.getElementById('memory-round-label').textContent = `Round ${memoryRound + 1} / ${memoryQuestions.length}`;
-  document.getElementById('memory-topic-tag').textContent   = q.topic;
-  document.getElementById('memory-question').textContent    = q.question;
+  const topic = memoryTopicPool[memoryRound % memoryTopicPool.length];
+
+  document.getElementById('memory-round-label').textContent = `Round ${memoryRound + 1} / ${MEMORY_ROUNDS}`;
+  document.getElementById('memory-topic-tag').textContent   = topic;
+  document.getElementById('memory-question').textContent    = 'Generating question...';
+  document.getElementById('memory-answers').innerHTML       = '';
   document.getElementById('memory-feedback').classList.add('hidden');
+  document.getElementById('memory-next-btn').classList.add('hidden');
+
+  let q;
+  try {
+    q = await generateSingleQuestion(topic, memoryQuestions);
+  } catch (_) {
+    try {
+      // retry once without the "avoid" context in case that confused the model
+      q = await generateSingleQuestion(topic, []);
+    } catch (err2) {
+      document.getElementById('memory-question').textContent = 'Could not load question — check your connection and tap Next to try another.';
+      document.getElementById('memory-next-btn').classList.remove('hidden');
+      return;
+    }
+  }
+
+  memoryQuestions.push(q);
+
+  document.getElementById('memory-topic-tag').textContent = q.topic;
+  document.getElementById('memory-question').textContent  = q.question;
 
   const answersEl = document.getElementById('memory-answers');
   answersEl.innerHTML = '';
 
   q.choices.forEach(choice => {
-    const btn     = document.createElement('button');
-    const letter  = choice.charAt(0); // 'A', 'B', 'C', 'D'
-    btn.className = 'memory-answer-btn';
+    const btn    = document.createElement('button');
+    const letter = choice.charAt(0);
+    btn.className   = 'memory-answer-btn';
     btn.textContent = choice;
     btn.addEventListener('click', () => handleMemoryAnswer(letter, q.correct, q.topic, btn));
     answersEl.appendChild(btn);
@@ -1263,7 +1249,7 @@ async function handleMemoryAnswer(chosen, correct, topic, clickedBtn) {
 
 function updateMemoryScoreDisplay() {
   const el = document.getElementById('memory-score-display');
-  if (el) el.textContent = `Score: ${memoryScore}/${memoryQuestions.length || MEMORY_ROUNDS}`;
+  if (el) el.textContent = `Score: ${memoryScore}/${MEMORY_ROUNDS}`;
 }
 
 function nextMemoryRound() {
