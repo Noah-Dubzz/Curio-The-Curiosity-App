@@ -1,3 +1,4 @@
+(function () {
 /* ── Web Speech API Setup ─────────────────────────────────── */
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
@@ -175,3 +176,5 @@ window.closeAssistant = function () {
   if (!root) return;
   root.style.display = 'none';
 };
+
+})();
