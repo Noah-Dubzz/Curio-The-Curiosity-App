@@ -6,7 +6,6 @@
   <title>Curio – The Curiosity App</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="popup.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -14,7 +13,7 @@
   <div id="setup-screen" class="setup-screen">
     <div class="setup-card">
       <div class="setup-logo">
-        <div class="logo-icon">🧠</div>
+        <div class="logo-icon">&#128128;</div>
         <h1>Curio</h1>
         <p class="tagline">Learn anything. One connection at a time.</p>
       </div>
@@ -38,7 +37,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <span class="brand-icon">🧠</span>
+        <div class="mac-close-box"></div>
         <span class="brand-name">Curio</span>
       </div>
 
@@ -69,21 +68,21 @@
     <!-- Chat -->
     <main class="chat-area">
       <div class="chat-header">
-        <button class="menu-btn" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+        <button class="menu-btn" onclick="toggleSidebar()" title="Toggle sidebar">&#9632;</button>
         <div class="chat-title">
           <span class="status-dot"></span>
-          Curio is ready
+          CURIO
         </div>
         <div class="header-controls">
-          <button class="icon-btn" id="tts-btn" onclick="toggleTTS()" title="Toggle voice output">🔊</button>
-          <button class="icon-btn" id="open-assistant-btn" onclick="openAssistant()" title="Open Assistant">💻</button>
+          <button class="icon-btn" id="tts-btn" onclick="toggleTTS()" title="Toggle voice output">&#128266;</button>
+          <button class="icon-btn" id="open-assistant-btn" onclick="openAssistant()" title="Open Assistant">&#128187;</button>
         </div>
       </div>
 
       <div id="messages" class="messages">
         <div class="welcome-message" id="welcome-msg">
-          <div class="welcome-icon">🧠</div>
-          <h2>Hi, I'm Curio!</h2>
+          <div class="welcome-icon">&#128128;</div>
+          <h2>HI, I'M CURIO!</h2>
           <p>I'll teach you anything by connecting new ideas<br />to things you already know.</p>
           <p class="welcome-sub">What would you like to learn today?</p>
         </div>
@@ -98,7 +97,7 @@
 
       <div class="input-area">
         <div class="input-row">
-          <button class="icon-btn" id="mic-btn" onclick="toggleMic()" title="Voice input">🎤</button>
+          <button class="icon-btn" id="mic-btn" onclick="toggleMic()" title="Voice input">&#127908;</button>
           <input
             type="text"
             id="chat-input"
@@ -193,9 +192,9 @@
   <div id="quiz-modal" class="modal hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <span class="modal-icon">⚡</span>
+        <div class="mac-close-box"></div>
         <h3>Quick Challenge</h3>
-        <p id="quiz-topic-label">Test your knowledge</p>
+        <span id="quiz-topic-label" class="modal-icon" style="position:absolute;right:8px;font-size:11px;"></span>
       </div>
       <div id="quiz-content" class="quiz-content">
         <div class="quiz-question" id="quiz-question-text">Loading question…</div>
