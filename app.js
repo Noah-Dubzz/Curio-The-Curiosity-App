@@ -1152,10 +1152,17 @@ Rules:
 
   const data = await geminiRequest({
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 600,
+      thinkingConfig: { thinkingBudget: 0 }
+    }
   });
 
-  const raw   = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  // Gemini 2.5 Flash may return thinking parts (thought:true) before the real text
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const textPart = parts.find(p => !p.thought) || parts[0];
+  const raw   = textPart?.text?.trim() || '';
   const match = raw.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('No JSON');
   const q = JSON.parse(match[0]);
