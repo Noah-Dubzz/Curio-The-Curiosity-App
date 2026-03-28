@@ -19,10 +19,6 @@ let currentQuizTopic    = '';
 let currentQuizQuestion = '';
 let awaitingResponse    = false;
 
-// Google / Firebase state
-let googleUser  = null;   // Firebase User object when signed in
-let cloudSynced = false;
-
 // Memory Game state
 let memoryQuestions  = [];   // [{topic, question, choices, correct}]
 let memoryRound      = 0;
@@ -264,7 +260,6 @@ function initApp() {
 
   renderKnowledgeBank();
   renderCuriosityBox();
-  updateGoogleStatus();
 
   // Show chat view by default
   showView('chat');
@@ -434,8 +429,6 @@ function handleLearned(topic) {
     localStorage.setItem('curio_knowledge', JSON.stringify(knowledgeBank));
 
     renderKnowledgeBank();
-
-    cloudSave();
 
     updateMemoryLobbyHint();
 
@@ -933,10 +926,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const setupBtn = document.getElementById('setup-btn');
   if (setupBtn) setupBtn.addEventListener('click', startApp);
 
-  // Google sign-in on setup screen
-  const setupGoogleBtn = document.getElementById('setup-google-btn');
-  if (setupGoogleBtn) setupGoogleBtn.addEventListener('click', handleGoogleSignIn);
-
   // Sidebar actions
   const newChatBtn = document.getElementById('new-chat-btn');
   if (newChatBtn) newChatBtn.addEventListener('click', newConversation);
@@ -984,10 +973,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   });
 
-  // Google connect button (in sidebar)
-  const gcBtn = document.getElementById('google-connect-btn');
-  if (gcBtn) gcBtn.addEventListener('click', handleGoogleSignIn);
-
   // Curiosity Box
   const cboxAddBtn = document.getElementById('cbox-add-btn');
   if (cboxAddBtn) cboxAddBtn.addEventListener('click', addCuriosityItem);
@@ -1016,16 +1001,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (memNextBtn) memNextBtn.addEventListener('click', nextMemoryRound);
   const memSkipMg = document.getElementById('memory-skip-minigame');
   if (memSkipMg) memSkipMg.addEventListener('click', resolveMemoryMinigame);
-
-  // Listen for Firebase auth state changes (web only)
-  window.addEventListener('curio-auth-changed', (e) => {
-    googleUser = e.detail;
-    if (googleUser) {
-      // Signed in: load cloud data, then init app
-      loadCloudData(googleUser.uid);
-    }
-    updateGoogleStatus();
-  });
 });
 
 // Expose sendMessage globally so popup.js (IIFE) can call window.sendMessage()
@@ -1059,7 +1034,6 @@ function addCuriosityItem() {
   localStorage.setItem('curio_cbox', JSON.stringify(curiosityBox));
   input.value = '';
   renderCuriosityBox();
-  cloudSave();
   updateMemoryLobbyHint();
 }
 
@@ -1067,7 +1041,6 @@ function removeCuriosityItem(item) {
   curiosityBox = curiosityBox.filter(i => i !== item);
   localStorage.setItem('curio_cbox', JSON.stringify(curiosityBox));
   renderCuriosityBox();
-  cloudSave();
   updateMemoryLobbyHint();
 }
 
@@ -1094,105 +1067,6 @@ function renderCuriosityBox() {
 
 // Also make Curio AI aware of Curiosity Box topics in its system prompt
 // (injected in buildSystemPrompt already via curiosityBox variable)
-
-// ═══════════════════════════════════════════════════════════
-// ── GOOGLE / FIREBASE SYNC ─────────────────────────────────
-// ═══════════════════════════════════════════════════════════
-
-async function handleGoogleSignIn() {
-  if (!window._curio_signIn) {
-    alert('Google Sign-in is not available in the extension. Use the web app at hacklantacurio.netlify.app');
-    return;
-  }
-  try {
-    const result = await window._curio_signIn();
-    googleUser   = result.user;
-    // If this is a new Google user who hasn't gone through setup, pre-fill from their Google profile
-    if (!localStorage.getItem('curio_name') && googleUser.displayName) {
-      // Auto-setup from Google profile
-      userName       = googleUser.displayName.split(' ')[0];
-      userBackground = 'a curious learner';
-      localStorage.setItem('curio_name',       userName);
-      localStorage.setItem('curio_background', userBackground);
-    }
-    await loadCloudData(googleUser.uid);
-    initApp();
-  } catch (err) {
-    if (err.code !== 'auth/popup-closed-by-user') {
-      console.error('Google sign-in error:', err);
-      alert('Sign-in failed: ' + err.message);
-    }
-  }
-}
-
-async function loadCloudData(uid) {
-  if (!window._curio_loadCloud) return;
-  try {
-    const data = await window._curio_loadCloud(uid);
-    if (!data) return;
-    // Merge cloud data into local (cloud wins on conflict)
-    if (data.name)           { userName       = data.name;           localStorage.setItem('curio_name', userName); }
-    if (data.background)     { userBackground = data.background;     localStorage.setItem('curio_background', userBackground); }
-    if (data.gems != null)   { gems           = data.gems;           localStorage.setItem('curio_gems', String(gems)); }
-    if (data.knowledge)      { knowledgeBank  = data.knowledge;      localStorage.setItem('curio_knowledge', JSON.stringify(knowledgeBank)); }
-    if (data.cbox)           { curiosityBox   = data.cbox;           localStorage.setItem('curio_cbox', JSON.stringify(curiosityBox)); }
-    cloudSynced = true;
-    updateGoogleStatus();
-    // Re-render if app is already visible
-    const gemsEl = document.getElementById('gems-count');
-    if (gemsEl) {
-      gemsEl.textContent = gems;
-      renderKnowledgeBank();
-      renderCuriosityBox();
-    }
-  } catch (err) {
-    console.error('Cloud load error:', err);
-  }
-}
-
-function cloudSave() {
-  if (!googleUser || !window._curio_saveCloud) return;
-  window._curio_saveCloud(googleUser.uid, {
-    name:       userName,
-    background: userBackground,
-    gems,
-    knowledge:  knowledgeBank,
-    cbox:       curiosityBox
-  }).catch(err => console.error('Cloud save error:', err));
-}
-
-function updateGoogleStatus() {
-  const statusEl = document.getElementById('google-status');
-  const btnEl    = document.getElementById('google-connect-btn');
-  if (!statusEl || !btnEl) return;
-
-  if (googleUser) {
-    const name = googleUser.displayName || googleUser.email || 'Google';
-    statusEl.innerHTML = `
-      <span class="google-connected-label">[G] ${escapeHtml(name)}</span>
-      <button class="google-disconnect-btn" id="google-disconnect-btn">Disconnect</button>
-    `;
-    const disconnectBtn = document.getElementById('google-disconnect-btn');
-    if (disconnectBtn) {
-      disconnectBtn.addEventListener('click', async () => {
-        if (!window._curio_signOut) return;
-        await window._curio_signOut();
-        googleUser  = null;
-        cloudSynced = false;
-        updateGoogleStatus();
-      });
-    }
-  } else {
-    statusEl.innerHTML = '<button class="google-connect-btn" id="google-connect-btn">Connect Google -></button>';
-    const gcBtn = document.getElementById('google-connect-btn');
-    if (gcBtn) gcBtn.addEventListener('click', handleGoogleSignIn);
-  }
-}
-
-// Hook cloud saves to existing data-mutating functions
-// (called after any local storage write in the original functions)
-const _origHandleLearned = typeof handleLearned === 'function' ? handleLearned : null;
-
 
 // ═══════════════════════════════════════════════════════════
 // ── MEMORY GAME ────────────────────────────────────────────
@@ -1370,7 +1244,6 @@ async function handleMemoryAnswer(chosen, correct, topic, clickedBtn) {
     memoryScore++;
     updateMemoryScoreDisplay();
     playMemorySound('success');
-    cloudSave();
 
     document.getElementById('memory-feedback-text').textContent = '+50 gems! Correct!';
     document.getElementById('memory-feedback').classList.remove('hidden');

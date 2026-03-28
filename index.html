@@ -9,46 +9,6 @@
   <link rel="apple-touch-icon" href="favicon.png" />
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Firebase SDKs (Google Sign-In / Cloud Sync) -->
-  <script type="module">
-    import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-    import { getFirestore, doc, setDoc, getDoc }
-      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-    const firebaseConfig = {
-      apiKey:            "AIzaSyA95ucJx1IrsMVSKWlo__aZgXHH1a33BXs",
-      authDomain:        "curio---the-curiosity-app.firebaseapp.com",
-      projectId:         "curio---the-curiosity-app",
-      storageBucket:     "curio---the-curiosity-app.firebasestorage.app",
-      messagingSenderId: "107274659163",
-      appId:             "1:107274659163:web:ede1f09c43ac2c634b667e",
-      measurementId:     "G-T44WBG7H5J"
-    };
-
-    const fbApp  = initializeApp(firebaseConfig);
-    const auth   = getAuth(fbApp);
-    const db     = getFirestore(fbApp);
-    const provider = new GoogleAuthProvider();
-
-    // Expose to app.js
-    window._curio_auth     = auth;
-    window._curio_db       = db;
-    window._curio_provider = provider;
-    window._curio_signIn   = () => signInWithPopup(auth, provider);
-    window._curio_signOut  = () => signOut(auth);
-    window._curio_saveCloud = async (uid, data) => {
-      await setDoc(doc(db, 'users', uid), data, { merge: true });
-    };
-    window._curio_loadCloud = async (uid) => {
-      const snap = await getDoc(doc(db, 'users', uid));
-      return snap.exists() ? snap.data() : null;
-    };
-    onAuthStateChanged(auth, user => {
-      window.dispatchEvent(new CustomEvent('curio-auth-changed', { detail: user }));
-    });
-  </script>
 </head>
 <body>
 
@@ -70,13 +30,6 @@
           <input type="text" id="setup-background" placeholder="e.g., Computer Science student at Georgia State" />
         </div>
         <button id="setup-btn" class="btn-primary">Start Learning -></button>
-
-        <!-- Google Sign-In option on setup -->
-        <div class="setup-divider"><span>or</span></div>
-        <button id="setup-google-btn" class="btn-google">
-          <span class="google-g">G</span> Continue with Google
-        </button>
-        <p class="setup-google-hint">Syncs your data across all devices</p>
       </div>
     </div>
   </div>
@@ -99,10 +52,6 @@
           <div class="user-gems">
             <span class="gem-icon">&lt;&gt;</span>
             <span id="gems-count">0</span> gems
-          </div>
-          <!-- Google account status -->
-          <div class="google-status" id="google-status">
-            <button class="google-connect-btn" id="google-connect-btn">Connect Google -></button>
           </div>
         </div>
       </div>
