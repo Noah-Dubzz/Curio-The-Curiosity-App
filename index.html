@@ -36,7 +36,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="mac-close-box"></div>
+        <div class="mac-close-box" id="sidebar-close" title="Close sidebar" style="cursor:pointer"></div>
         <span class="brand-name">Curio</span>
       </div>
 
@@ -118,9 +118,9 @@
       <div class="modal-header">
         <div class="mac-close-box"></div>
         <h3>Quick Challenge</h3>
-        <span id="quiz-topic-label" class="modal-icon" style="position:absolute;right:8px;font-size:11px;"></span>
       </div>
       <div id="quiz-content" class="quiz-content">
+        <div id="quiz-topic-label" class="quiz-topic-sub"></div>
         <div class="quiz-question" id="quiz-question-text">Loading question…</div>
         <textarea id="quiz-answer" placeholder="Type your answer here…"></textarea>
       </div>

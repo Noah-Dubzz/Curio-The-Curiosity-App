@@ -802,13 +802,16 @@ body {
 
 .quiz-content { padding: 24px 28px; }
 
-#quiz-topic-label {
+#quiz-topic-label, .quiz-topic-sub {
   display: block;
-  font-size: 14px;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   color: var(--gray-dark);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
 }
 
 .modal-header p + * { }

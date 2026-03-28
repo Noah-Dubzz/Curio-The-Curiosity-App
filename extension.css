@@ -665,6 +665,19 @@ html, body {
 
 .quiz-content { padding: 14px 14px 10px; }
 
+#quiz-topic-label, .quiz-topic-sub {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: bold;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ddd;
+  font-family: 'VT323', 'Courier New', monospace;
+}
+
 .quiz-question {
   font-family: 'VT323', 'Courier New', monospace;
   font-size: 16px;

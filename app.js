@@ -18,59 +18,61 @@ let currentQuizQuestion = '';
 let awaitingResponse    = false;
 
 // ── System Prompt Builder ────────────────────────────────────
-function buildSystemPrompt() {
-  return `You are Curio, a learning assistant who talks like a knowledgeable friend — casual, sharp, and direct. NOT a tutor, NOT a motivational speaker. Think of how a smart upperclassman would help a friend figure something out.
-
-User Profile:
-- Name: ${userName}
-- Background: ${userBackground}
-
-Conversation Flow — follow this order every time:
-
-STEP 1 — CLARIFY FIRST
-If the user mentions a broad topic ("programming", "math", "science", etc.), do NOT dive in yet.
-Acknowledge briefly and ask what specific thing they want to learn.
-Bad: "That's awesome, programming is such a powerful skill! When you're designing a level..."
-Good: "Sounds good! Programming is pretty broad though — is there a specific topic you're trying to figure out?"
-
-STEP 2 — MAKE A SMART GUESS ABOUT THEIR CONTEXT
-Once you know the specific topic, use their background to make a smart assumption about their setup.
-State it casually and confirm. Example: "I'm guessing you're working in Python?"
-
-STEP 3 — FIND THE ANCHOR
-Ask if they know a closely related concept they probably already understand.
-Example: "Alright, so are you familiar with regular Python lists?"
-
-STEP 3b — IF THEY SAY NO TO THE ANCHOR
-Don't panic or trail off. Immediately pivot to an even simpler everyday analogy — no jargon.
-Teach that simpler thing first in 2–3 sentences, then come back to the original topic.
-Example: If they don't know Python lists, explain them using a shopping list or a row of lockers first.
-Never leave a thought unfinished. Always complete your sentence and ask a follow-up.
-
-STEP 4 — BRIDGE AND TEACH
-Use what they know to introduce what they don't. One idea at a time.
-After each step: short check-in like "does that make sense?" or "still with me?"
-
-STEP 5 — GIVE EXAMPLES WHEN ASKED
-Don't dump code immediately. Wait until they ask or are clearly stuck.
-
-Tone Rules (CRITICAL):
-- 2–3 sentences per reply max, then stop and ask something.
-- NEVER open with enthusiasm or compliments. No "That's awesome!", "Great question!", "Programming is such a powerful skill!" — just get to the point.
-- Sound like a person texting a friend, not an assistant writing an email.
-- Casual language: "yeah", "totally", "alright", "kind of like...", "nah", "fair enough"
-- Use ${userName}'s name occasionally, not every message.
-
-Knowledge Bank Signal:
-Only after ${userName} has clearly shown they understand the concept (answered correctly, or explicitly said they get it), end your response with this exact tag on its own line:
-[LEARNED: <concise topic name>]
-
-Example ending: "Yeah exactly, you got it. [LEARNED: Linked Lists]"
-
-Do NOT emit [LEARNED: ...] until real understanding is shown.`;
+function buildSystemPrompt() {
+  return `You are Curio, a learning assistant who talks like a knowledgeable friend â€” casual, sharp, and direct. NOT a tutor, NOT a motivational speaker.
+
+User Profile:
+- Name: ${userName}
+- Background: ${userBackground}
+
+LANGUAGE RULE (CRITICAL):
+Always respond in the same language the user writes in. If they write in Spanish, respond in Spanish. French â€” French. Creole â€” Creole. Always match their language and maintain the same casual personality. If they switch languages mid-conversation, switch with them immediately.
+
+TOPIC RULE (CRITICAL):
+You will teach ANYTHING without judgment â€” gaming strategies, Fortnite mechanics, pop culture, slang, memes, history, science, cooking, sports, music, finance, fashion, fitness, coding, math, philosophy, relationships, internet culture, literally anything. Zero gatekeeping. If someone wants to learn how to crank 90s in Fortnite, what baby Gronk means, BBL lingo, how stocks work, anything â€” same energy and same teaching approach every time.
+
+Conversation Flow â€” follow this order every time:
+
+STEP 1 â€” CLARIFY FIRST
+If the user mentions a broad topic, do NOT dive in yet.
+Acknowledge briefly and ask what specific part they want to learn.
+Bad: "That's awesome! There's so much to know!"
+Good: "Cool â€” that's pretty broad though, what specific part are you trying to figure out?"
+
+STEP 2 â€” MAKE A SMART GUESS ABOUT THEIR CONTEXT
+Once you know the specific topic, use their background to make a smart assumption.
+State it casually and confirm.
+
+STEP 3 â€” FIND THE ANCHOR
+Ask if they know a closely related concept they probably already understand.
+
+STEP 3b â€” IF THEY SAY NO TO THE ANCHOR
+Don't panic or trail off. Pivot to a simpler everyday analogy â€” no jargon.
+Teach that simpler thing first in 2â€“3 sentences, then come back to the original topic.
+Never leave a thought unfinished. Always complete your sentence and ask a follow-up.
+
+STEP 4 â€” BRIDGE AND TEACH
+Use what they know to introduce what they don't. One idea at a time.
+After each step: short check-in like "does that make sense?" or "still with me?"
+
+STEP 5 â€” GIVE EXAMPLES WHEN ASKED
+Don't dump information immediately. Wait until they ask or are clearly stuck.
+
+Tone Rules (CRITICAL):
+- 2â€“3 sentences per reply max, then stop and ask something.
+- NEVER open with enthusiasm or compliments. No "That's awesome!", "Great question!" â€” just get to the point.
+- Sound like a person texting a friend, not an assistant writing an email.
+- Casual language: "yeah", "totally", "alright", "kind of like...", "nah", "fair enough"
+- Use ${userName}'s name occasionally, not every message.
+
+Knowledge Bank Signal:
+Only after ${userName} has clearly shown they understand the concept (answered correctly, or explicitly said they get it), end your response with this exact tag on its own line:
+[LEARNED: <concise topic name>]
+
+Example ending: "Yeah exactly, you got it. [LEARNED: Fortnite Building Mechanics]"
+
+Do NOT emit [LEARNED: ...] until real understanding is shown.`;
 }
-
-// ── Helpers ───────────────────────────────────────────────────
 function escapeHtml(text) {
   return String(text)
     .replace(/&/g, '&amp;')
@@ -198,28 +200,22 @@ function resetApp() {
   location.reload();
 }
 
-function newConversation() {
-  conversationHistory = [];
-  const msgs = document.getElementById('messages');
-  msgs.innerHTML = '';
-
-  const welcome = document.createElement('div');
-  welcome.className = 'welcome-message';
-  welcome.id        = 'welcome-msg';
-  welcome.innerHTML = `
-    <div class="welcome-icon">🧠</div>
-    <h2>Hi again, ${escapeHtml(userName)}!</h2>
-    <p>Ready for a new topic?<br />What would you like to learn?</p>
-  `;
-  msgs.appendChild(welcome);
+function newConversation() {
+  speechSynthesis.cancel();
+  conversationHistory = [];
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '';
+
+  const welcome = document.createElement('div');
+  welcome.className = 'welcome-message';
+  welcome.id        = 'welcome-msg';
+  welcome.innerHTML = `
+    <div class="welcome-icon">&#x1F9E0;</div>
+    <h2>Hi again, ${escapeHtml(userName)}!</h2>
+    <p>Ready for a new topic?<br />What would you like to learn?</p>
+  `;
+  msgs.appendChild(welcome);
 }
-
-// ── Extension-aware Gemini fetcher ──────────────────────────
-// In extension context: calls the deployed Netlify proxy (API key lives
-// server-side, never in extension code).
-// In Netlify/local context: calls the local /api/gemini route.
-const NETLIFY_PROXY = 'https://hacklantacurio.netlify.app/api/gemini';
-
 async function geminiRequest(payload) {
   const inExtension =
     typeof chrome !== 'undefined' &&
@@ -331,41 +327,72 @@ async function sendMessage() {
 }
 
 // ── Knowledge Bank & Gamification ────────────────────────────
-function handleLearned(topic) {
-  if (!knowledgeBank.includes(topic)) {
-    knowledgeBank.push(topic);
-    localStorage.setItem('curio_knowledge', JSON.stringify(knowledgeBank));
-    renderKnowledgeBank();
-  }
-
-  // Award gems and update display
-  const earned = 200;
-  gems += earned;
-  localStorage.setItem('curio_gems', String(gems));
-  document.getElementById('gems-count').textContent = gems;
-
-  showToast(`+${earned} <> You learned ${topic}!`);
-
-  // Offer a quiz after a short delay
-  currentQuizTopic = topic;
-  setTimeout(() => openQuiz(topic), 2000);
+function handleLearned(topic) {
+  if (!knowledgeBank.includes(topic)) {
+    knowledgeBank.push(topic);
+    localStorage.setItem('curio_knowledge', JSON.stringify(knowledgeBank));
+    renderKnowledgeBank();
+  }
+  currentQuizTopic = topic;
+  setTimeout(() => showLearnedPopup(topic), 800);
+}
+
+function showLearnedPopup(topic) {
+  const existing = document.getElementById('learned-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'learned-modal';
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="mac-close-box"></div>
+        <h3>Knowledge Unlocked</h3>
+      </div>
+      <div class="quiz-content" style="text-align:center;padding:28px 24px 20px">
+        <div style="font-size:40px;margin-bottom:10px">&#x1F9E0;</div>
+        <div style="font-size:12px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;color:var(--gray-dark)">You learned:</div>
+        <div style="font-size:22px;font-weight:bold;margin-bottom:16px">${escapeHtml(topic)}</div>
+        <div style="font-size:14px;color:var(--gray-dark)">Attempt the challenge to earn gems, or keep exploring.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="learned-newchat-btn">New Chat</button>
+        <button class="btn-primary btn-primary-sm" id="learned-challenge-btn">Attempt Challenge (+gems)</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('learned-newchat-btn').addEventListener('click', () => {
+    modal.remove();
+    newConversation();
+  });
+  document.getElementById('learned-challenge-btn').addEventListener('click', () => {
+    modal.remove();
+    openQuiz(topic);
+  });
 }
-
-function renderKnowledgeBank() {
-  const container = document.getElementById('knowledge-bank');
-  if (knowledgeBank.length === 0) {
-    container.innerHTML = '<div class="empty-state">Nothing learned yet.<br>Start a conversation!</div>';
-    return;
-  }
-  container.innerHTML = knowledgeBank
-    .map(item => `<div class="knowledge-item">
-      <span class="k-check">✓</span>
-      <span>${escapeHtml(item)}</span>
-    </div>`)
-    .join('');
+function renderKnowledgeBank() {
+  const container = document.getElementById('knowledge-bank');
+  if (knowledgeBank.length === 0) {
+    container.innerHTML = '<div class="empty-state">Nothing learned yet.<br>Start a conversation!</div>';
+    return;
+  }
+  container.innerHTML = knowledgeBank
+    .map(item => `<div class="knowledge-item" data-topic="${escapeHtml(item)}" style="cursor:pointer" title="Tap to attempt challenge">
+      <span class="k-check">&#x2713;</span>
+      <span>${escapeHtml(item)}</span>
+      <span style="margin-left:auto;font-size:11px;opacity:0.45">&#9658;</span>
+    </div>`)
+    .join('');
+  container.querySelectorAll('.knowledge-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const t = el.dataset.topic;
+      if (t) { currentQuizTopic = t; openQuiz(t); }
+    });
+  });
 }
-
-// ── Toast ─────────────────────────────────────────────────────
 function showToast(msg) {
   const toast    = document.createElement('div');
   toast.className = 'gems-toast';
@@ -377,33 +404,32 @@ function showToast(msg) {
 }
 
 // ── Quiz ──────────────────────────────────────────────────────
-async function openQuiz(topic) {
-  currentQuizQuestion = '';
-
-  document.getElementById('quiz-topic-label').textContent = `Test your knowledge of ${topic}`;
-  document.getElementById('quiz-question-text').textContent = 'Loading question…';
-  document.getElementById('quiz-answer').value = '';
-  document.getElementById('quiz-answer').style.display = '';
-
-  const submitBtn = document.getElementById('quiz-submit-btn');
-  const skipBtn   = document.querySelector('.modal-ghost-btn');
-  submitBtn.textContent = 'Submit Answer';
-  submitBtn.disabled    = false;
-  submitBtn.classList.remove('hidden');
-  skipBtn.textContent   = 'Skip';
-
-  document.getElementById('quiz-modal').classList.remove('hidden');
-
-  try {
-    const question = await generateQuizQuestion(topic);
-    currentQuizQuestion = question;
-    document.getElementById('quiz-question-text').textContent = question;
-  } catch (_) {
-    currentQuizQuestion = `In your own words, explain what ${topic} is and how it works.`;
-    document.getElementById('quiz-question-text').textContent = currentQuizQuestion;
-  }
+async function openQuiz(topic) {
+  currentQuizQuestion = '';
+
+  document.getElementById('quiz-topic-label').textContent = `Test your knowledge of ${topic}`;
+  document.getElementById('quiz-question-text').textContent = 'Loading questionâ€¦';
+  document.getElementById('quiz-answer').value = '';
+  document.getElementById('quiz-answer').style.display = '';
+
+  const submitBtn = document.getElementById('quiz-submit-btn');
+  const skipBtn   = document.getElementById('quiz-skip-btn');
+  submitBtn.textContent = 'Submit Answer';
+  submitBtn.disabled    = false;
+  submitBtn.classList.remove('hidden');
+  skipBtn.textContent   = 'Skip';
+
+  document.getElementById('quiz-modal').classList.remove('hidden');
+
+  try {
+    const question = await generateQuizQuestion(topic);
+    currentQuizQuestion = question;
+    document.getElementById('quiz-question-text').textContent = question;
+  } catch (_) {
+    currentQuizQuestion = `In your own words, explain what ${topic} is and how it works.`;
+    document.getElementById('quiz-question-text').textContent = currentQuizQuestion;
+  }
 }
-
 async function generateQuizQuestion(topic) {
   const data = await geminiRequest({
     contents: [{
@@ -415,70 +441,67 @@ async function generateQuizQuestion(topic) {
     `Explain ${topic} in your own words.`;
 }
 
-async function submitQuiz() {
-  const answer    = document.getElementById('quiz-answer').value.trim();
-  const submitBtn = document.getElementById('quiz-submit-btn');
-  const skipBtn   = document.querySelector('.modal-ghost-btn');
-
-  if (!answer) {
-    document.getElementById('quiz-answer').style.borderColor = '#ef4444';
-    setTimeout(() => { document.getElementById('quiz-answer').style.borderColor = ''; }, 1500);
-    return;
-  }
-
-  submitBtn.textContent = 'Checking…';
-  submitBtn.disabled    = true;
-
-  try {
-    const data     = await geminiRequest({
-      contents: [{
-        role: 'user',
-        parts: [{ text: `Quiz question: "${currentQuizQuestion}"\nStudent answer: "${answer}"\n\nBriefly evaluate in 2–3 encouraging sentences. Tell them if their understanding is correct or where they went slightly wrong. Be supportive. End with exactly one word on a new line: CORRECT or INCORRECT.` }]
-      }]
-    });
-    const feedback = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
-    // Determine correctness — CORRECT must appear and INCORRECT must not (as separate word)
-    const isCorrect = /\bCORRECT\b/.test(feedback) && !/\bINCORRECT\b/.test(feedback);
-
-    if (isCorrect) {
-      gems += 200;
-      localStorage.setItem('curio_gems', String(gems));
-      document.getElementById('gems-count').textContent = gems;
-      showToast('+200 <> Bonus gems! Great answer!');
-    }
-
-    // Show feedback in place of the textarea
-    document.getElementById('quiz-answer').style.display = 'none';
-    document.getElementById('quiz-question-text').innerHTML =
-      `<div style="font-size:26px;text-align:center;margin-bottom:10px">${isCorrect ? '🎉' : '💡'}</div>` +
-      formatMessage(feedback.replace(/\b(CORRECT|INCORRECT)\b\s*$/, '').trim());
-
-    submitBtn.classList.add('hidden');
-    skipBtn.textContent = 'Close';
-  } catch (_) {
-    closeQuiz();
-  }
+async function submitQuiz() {
+  const answer    = document.getElementById('quiz-answer').value.trim();
+  const submitBtn = document.getElementById('quiz-submit-btn');
+  const skipBtn   = document.getElementById('quiz-skip-btn');
+
+  if (!answer) {
+    document.getElementById('quiz-answer').style.borderColor = '#ef4444';
+    setTimeout(() => { document.getElementById('quiz-answer').style.borderColor = ''; }, 1500);
+    return;
+  }
+
+  submitBtn.textContent = 'Checkingâ€¦';
+  submitBtn.disabled    = true;
+
+  try {
+    const data     = await geminiRequest({
+      contents: [{
+        role: 'user',
+        parts: [{ text: `Quiz question: "${currentQuizQuestion}"\nStudent answer: "${answer}"\n\nBriefly evaluate in 2â€“3 encouraging sentences. Tell them if their understanding is correct or where they went slightly wrong. Be supportive. End with exactly one word on a new line: CORRECT or INCORRECT.` }]
+      }]
+    });
+    const feedback = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    // Determine correctness â€” CORRECT must appear and INCORRECT must not
+    const isCorrect = /\bCORRECT\b/.test(feedback) && !/\bINCORRECT\b/.test(feedback);
+
+    if (isCorrect) {
+      gems += 200;
+      localStorage.setItem('curio_gems', String(gems));
+      document.getElementById('gems-count').textContent = gems;
+      showToast('+200 <> Gems earned! Great answer!');
+    }
+
+    // Show feedback in place of the textarea
+    document.getElementById('quiz-answer').style.display = 'none';
+    document.getElementById('quiz-question-text').innerHTML =
+      `<div style="font-size:26px;text-align:center;margin-bottom:10px">${isCorrect ? '&#x1F389;' : '&#x1F4A1;'}</div>` +
+      formatMessage(feedback.replace(/\b(CORRECT|INCORRECT)\b\s*$/, '').trim());
+
+    submitBtn.classList.add('hidden');
+    skipBtn.textContent = 'Close';
+  } catch (_) {
+    closeQuiz();
+  }
 }
-
-function closeQuiz() {
-  document.getElementById('quiz-modal').classList.add('hidden');
-
-  // Reset for next use
-  const submitBtn = document.getElementById('quiz-submit-btn');
-  submitBtn.textContent = 'Submit Answer';
-  submitBtn.disabled    = false;
-  submitBtn.classList.remove('hidden');
-
-  document.querySelector('.modal-ghost-btn').textContent = 'Skip';
-
-  document.getElementById('quiz-answer').style.display      = '';
-  document.getElementById('quiz-answer').style.borderColor  = '';
-  document.getElementById('quiz-question-text').textContent = '';
-  currentQuizQuestion = '';
+function closeQuiz() {
+  document.getElementById('quiz-modal').classList.add('hidden');
+
+  // Reset for next use
+  const submitBtn = document.getElementById('quiz-submit-btn');
+  submitBtn.textContent = 'Submit Answer';
+  submitBtn.disabled    = false;
+  submitBtn.classList.remove('hidden');
+
+  document.getElementById('quiz-skip-btn').textContent = 'Skip';
+
+  document.getElementById('quiz-answer').style.display      = '';
+  document.getElementById('quiz-answer').style.borderColor  = '';
+  document.getElementById('quiz-question-text').textContent = '';
+  currentQuizQuestion = '';
 }
-
-// ── Text-to-Speech ────────────────────────────────────────────
 function toggleTTS() {
   ttsEnabled = !ttsEnabled;
   const btn = document.getElementById('tts-btn');
