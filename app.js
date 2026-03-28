@@ -212,6 +212,48 @@ function newConversation() {
   msgs.appendChild(welcome);
 }
 
+// ── Extension-aware Gemini fetcher ──────────────────────────
+// Routes through background.js service worker when running as a Chrome
+// extension, falls back to the Netlify proxy for normal web use.
+async function geminiRequest(payload) {
+  const inExtension =
+    typeof chrome !== 'undefined' &&
+    typeof chrome.runtime !== 'undefined' &&
+    !!chrome.runtime.id;
+
+  if (inExtension) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ type: 'GEMINI_REQUEST', payload }, (result) => {
+        if (chrome.runtime.lastError) {
+          return reject(new Error(chrome.runtime.lastError.message));
+        }
+        if (!result.ok) {
+          return reject(new Error(result.data?.error?.message || `API error ${result.status}`));
+        }
+        resolve(result.data);
+      });
+    });
+  }
+
+  // Netlify / local server path
+  const response = await fetch('/api/gemini', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    let errMsg = `API error ${response.status}`;
+    try {
+      const errData = await response.json();
+      errMsg = errData?.error?.message || errMsg;
+    } catch (_) { /* ignore */ }
+    throw new Error(errMsg);
+  }
+
+  return response.json();
+}
+
 // ── Gemini API ────────────────────────────────────────────────
 async function callGemini(userText) {
   conversationHistory.push({
@@ -230,22 +272,7 @@ async function callGemini(userText) {
     }
   };
 
-  const response = await fetch('/api/gemini', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    let errMsg = `API error ${response.status}`;
-    try {
-      const errData = await response.json();
-      errMsg = errData?.error?.message || errMsg;
-    } catch (_) { /* ignore */ }
-    throw new Error(errMsg);
-  }
-
-  const data  = await response.json();
+  const data  = await geminiRequest(payload);
   const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
   if (!reply) throw new Error('Empty response from Gemini. Please try again.');
@@ -383,17 +410,12 @@ async function openQuiz(topic) {
 }
 
 async function generateQuizQuestion(topic) {
-  const resp = await fetch('/api/gemini', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        role: 'user',
-        parts: [{ text: `Write one short quiz question (one sentence) to test a student's understanding of "${topic}". The question should require a short paragraph answer showing conceptual understanding. Return ONLY the question text, nothing else.` }]
-      }]
-    })
+  const data = await geminiRequest({
+    contents: [{
+      role: 'user',
+      parts: [{ text: `Write one short quiz question (one sentence) to test a student's understanding of "${topic}". The question should require a short paragraph answer showing conceptual understanding. Return ONLY the question text, nothing else.` }]
+    }]
   });
-  const data = await resp.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
     `Explain ${topic} in your own words.`;
 }
@@ -413,18 +435,12 @@ async function submitQuiz() {
   submitBtn.disabled    = true;
 
   try {
-    const resp = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [{ text: `Quiz question: "${currentQuizQuestion}"\nStudent answer: "${answer}"\n\nBriefly evaluate in 2–3 encouraging sentences. Tell them if their understanding is correct or where they went slightly wrong. Be supportive. End with exactly one word on a new line: CORRECT or INCORRECT.` }]
-        }]
-      })
+    const data     = await geminiRequest({
+      contents: [{
+        role: 'user',
+        parts: [{ text: `Quiz question: "${currentQuizQuestion}"\nStudent answer: "${answer}"\n\nBriefly evaluate in 2–3 encouraging sentences. Tell them if their understanding is correct or where they went slightly wrong. Be supportive. End with exactly one word on a new line: CORRECT or INCORRECT.` }]
+      }]
     });
-
-    const data     = await resp.json();
     const feedback = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
     // Determine correctness — CORRECT must appear and INCORRECT must not (as separate word)
@@ -541,6 +557,59 @@ function toggleMic() {
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('collapsed');
 }
+
+// ── Wire up all event listeners (replaces inline handlers for MV3 CSP) ───────
+document.addEventListener('DOMContentLoaded', () => {
+  // Setup screen
+  const setupNameInput = document.getElementById('setup-name');
+  if (setupNameInput) {
+    setupNameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') startApp();
+    });
+  }
+  const setupBtn = document.getElementById('setup-btn');
+  if (setupBtn) setupBtn.addEventListener('click', startApp);
+
+  // Sidebar actions
+  const newChatBtn = document.getElementById('new-chat-btn');
+  if (newChatBtn) newChatBtn.addEventListener('click', newConversation);
+  const resetBtn = document.getElementById('reset-btn');
+  if (resetBtn) resetBtn.addEventListener('click', resetApp);
+
+  // Chat header
+  const menuBtn = document.getElementById('menu-btn');
+  if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
+  const ttsBtn = document.getElementById('tts-btn');
+  if (ttsBtn) ttsBtn.addEventListener('click', toggleTTS);
+  const assistantBtn = document.getElementById('open-assistant-btn');
+  if (assistantBtn) assistantBtn.addEventListener('click', () => {
+    if (typeof window.openAssistant === 'function') window.openAssistant();
+  });
+
+  // Input row
+  const micBtn = document.getElementById('mic-btn');
+  if (micBtn) micBtn.addEventListener('click', toggleMic);
+  const chatInput = document.getElementById('chat-input');
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
+  const sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+
+  // Quiz modal
+  const quizSkipBtn = document.getElementById('quiz-skip-btn');
+  if (quizSkipBtn) quizSkipBtn.addEventListener('click', closeQuiz);
+  const quizSubmitBtn = document.getElementById('quiz-submit-btn');
+  if (quizSubmitBtn) quizSubmitBtn.addEventListener('click', submitQuiz);
+});
+
+// Expose sendMessage globally so popup.js (IIFE) can call window.sendMessage()
+window.sendMessage = sendMessage;
 
 // ── Boot ──────────────────────────────────────────────────────
 window.addEventListener('load', () => {

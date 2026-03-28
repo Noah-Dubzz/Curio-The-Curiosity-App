@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Curio – The Curiosity App",
+  "version": "1.0",
+  "description": "Learn anything with your AI curiosity companion. Powered by Gemini.",
+  "action": {
+    "default_title": "Open Curio",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "32":  "icons/icon32.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "microphone"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "index.html",
+        "style.css",
+        "popup.css",
+        "app.js",
+        "popup.js",
+        "icons/*",
+        "Curio.jpg"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
