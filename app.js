@@ -36,7 +36,7 @@ Teaching Sequence (follow this every time):
 6. If ${userName} seems confused → try a different analogy; don't repeat the same one.
 
 Core Rules:
-- NEVER info-dump. Keep responses to 4–6 sentences max, then ask a question.
+- NEVER info-dump. Keep responses to 3–4 sentences max, then ask a question. Be concise.
 - Always include at least one question in each reply.
 - Use analogies grounded in ${userName}'s background: "${userBackground}".
 - Use ${userName}'s name occasionally to keep it personal.
@@ -209,7 +209,7 @@ async function callGemini(userText) {
     contents: conversationHistory,
     generationConfig: {
       temperature: 0.82,
-      maxOutputTokens: 600
+      maxOutputTokens: 350
     }
   };
 

@@ -2,6 +2,14 @@
   publish = "."
   functions = "netlify/functions"
 
+# Increase function timeout to 26s (max on free tier) to avoid 504s
+[functions]
+  node_bundler = "esbuild"
+  included_files = []
+
+[functions."gemini"]
+  timeout = 26
+
 # Redirect /api/gemini → the serverless function
 # The frontend never knows the difference
 [[redirects]]

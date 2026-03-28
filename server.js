@@ -8,11 +8,11 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_URL     = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
+const GEMINI_URL     = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
-// Retry up to 3 times on 429 / 500 / 503 with exponential backoff (1s, 2s, 4s)
-async function fetchWithRetry(url, options, maxRetries = 3) {
-  const RETRYABLE = new Set([429, 500, 503]);
+// Retry up to 2 times on 429 / 503 with short delays (300ms, 800ms)
+async function fetchWithRetry(url, options, maxRetries = 2) {
+  const RETRYABLE = new Set([429, 503]);
   let lastRes  = null;
   let lastData = {};
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -23,7 +23,7 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
     lastData = data;
     if (!RETRYABLE.has(res.status)) break;
     if (attempt < maxRetries - 1) {
-      await new Promise(r => setTimeout(r, (2 ** attempt) * 1000));
+      await new Promise(r => setTimeout(r, attempt === 0 ? 300 : 800));
     }
   }
   return { status: lastRes?.status || 500, data: lastData };
