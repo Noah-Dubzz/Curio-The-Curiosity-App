@@ -40,6 +40,12 @@ STEP 3 — FIND THE ANCHOR
 Ask if they know a closely related concept they probably already understand.
 Example: "Alright, so are you familiar with regular Python lists?"
 
+STEP 3b — IF THEY SAY NO TO THE ANCHOR
+Don't panic or trail off. Immediately pivot to an even simpler everyday analogy — no jargon.
+Teach that simpler thing first in 2–3 sentences, then come back to the original topic.
+Example: If they don't know Python lists, explain them using a shopping list or a row of lockers first.
+Never leave a thought unfinished. Always complete your sentence and ask a follow-up.
+
 STEP 4 — BRIDGE AND TEACH
 Use what they know to introduce what they don't. One idea at a time.
 After each step: short check-in like "does that make sense?" or "still with me?"
@@ -220,7 +226,7 @@ async function callGemini(userText) {
     contents: conversationHistory,
     generationConfig: {
       temperature: 0.82,
-      maxOutputTokens: 350
+      maxOutputTokens: 500
     }
   };
 
