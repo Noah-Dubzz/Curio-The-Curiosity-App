@@ -213,30 +213,20 @@ function newConversation() {
 }
 
 // ── Extension-aware Gemini fetcher ──────────────────────────
-// Routes through background.js service worker when running as a Chrome
-// extension, falls back to the Netlify proxy for normal web use.
+// In extension context: calls the deployed Netlify proxy (API key lives
+// server-side, never in extension code).
+// In Netlify/local context: calls the local /api/gemini route.
+const NETLIFY_PROXY = 'https://hacklantacurio.netlify.app/api/gemini';
+
 async function geminiRequest(payload) {
   const inExtension =
     typeof chrome !== 'undefined' &&
     typeof chrome.runtime !== 'undefined' &&
     !!chrome.runtime.id;
 
-  if (inExtension) {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ type: 'GEMINI_REQUEST', payload }, (result) => {
-        if (chrome.runtime.lastError) {
-          return reject(new Error(chrome.runtime.lastError.message));
-        }
-        if (!result.ok) {
-          return reject(new Error(result.data?.error?.message || `API error ${result.status}`));
-        }
-        resolve(result.data);
-      });
-    });
-  }
+  const url = inExtension ? NETLIFY_PROXY : '/api/gemini';
 
-  // Netlify / local server path
-  const response = await fetch('/api/gemini', {
+  const response = await fetch(url, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify(payload)

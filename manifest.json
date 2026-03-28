@@ -22,7 +22,7 @@
     "microphone"
   ],
   "host_permissions": [
-    "https://generativelanguage.googleapis.com/*"
+    "https://hacklantacurio.netlify.app/*"
   ],
   "web_accessible_resources": [
     {
