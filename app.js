@@ -237,7 +237,8 @@ async function geminiRequest(payload) {
     let errMsg = `API error ${response.status}`;
     try {
       const errData = await response.json();
-      errMsg = errData?.error?.message || errMsg;
+      // Netlify returns { error: "string" } — not { error: { message } }
+      errMsg = errData?.error?.message ?? errData?.error ?? errMsg;
     } catch (_) { /* ignore */ }
     throw new Error(errMsg);
   }
@@ -319,6 +320,8 @@ async function sendMessage() {
     }
     const friendly = err.message.includes('503')
       ? 'Curio is a little overloaded right now — give it a second and try again!'
+      : err.message.includes('403') || err.message.toLowerCase().includes('api key')
+      ? 'API key error (403). The Gemini API key needs to be updated in Netlify. Get a new key at aistudio.google.com and update GEMINI_API_KEY in the Netlify dashboard.'
       : `Something went wrong: ${err.message}`;
     addMessage(friendly, 'bot');
   } finally {
@@ -504,7 +507,7 @@ function speak(text) {
 }
 
 // ── Voice Input ───────────────────────────────────────────────
-function toggleMic() {
+async function toggleMic() {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -515,6 +518,20 @@ function toggleMic() {
 
   if (isRecording) {
     recognition?.stop();
+    return;
+  }
+
+  // Explicitly request mic permission first — Chrome extension popups can
+  // dismiss the SpeechRecognition prompt silently if the popup loses focus
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop()); // only needed the permission grant
+  } catch (permErr) {
+    if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+      alert('Microphone access was blocked. Please allow mic access in your browser\'s site settings and try again.');
+    } else {
+      alert('Could not access microphone: ' + permErr.message);
+    }
     return;
   }
 
@@ -533,6 +550,7 @@ function toggleMic() {
       chatInput.placeholder = '( Listening... )';
       chatInput.value = '';
     }
+    showToast('( Listening... )');
   };
 
   recognition.onresult = (e) => {

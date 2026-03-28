@@ -582,10 +582,10 @@ body {
 
 /* TTS active: teal tint on bot bubbles — matches the Mac desktop color */
 .message.bot .message-bubble.tts-active {
-  background: #d4f0ef;
-  color: #003333;
-  border-color: #008080;
-  box-shadow: 2px 2px 0 #008080;
+  background: #d4f0ef !important;
+  color: #003333 !important;
+  border-color: #008080 !important;
+  box-shadow: 2px 2px 0 #008080 !important;
 }
 
 .message-time {
