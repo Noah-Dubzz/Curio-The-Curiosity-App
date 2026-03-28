@@ -160,32 +160,57 @@
           MEMORY GAME
         </div>
         <div class="header-controls">
-          <span class="icon-btn" id="memory-score-display">Score: 0</span>
+          <span class="icon-btn" id="memory-score-display">Score: 0/10</span>
         </div>
       </div>
       <div class="memory-body" id="memory-body">
+
         <!-- Lobby screen -->
         <div id="memory-lobby" class="memory-lobby">
-          <div class="memory-lobby-icon">( * _ * )</div>
-          <h2>Memory Game</h2>
-          <p>Answer questions from your Knowledge Bank and Curiosity Box. Get them right to score gems!</p>
-          <p class="memory-lobby-hint" id="memory-pool-hint">Loading question pool...</p>
-          <button class="btn-primary" id="memory-start-btn" style="max-width:280px;margin-top:20px">Start Game</button>
+          <div class="memory-lobby-window">
+            <div class="mac-titlebar">
+              <div class="mac-close-box" id="memory-lobby-close"></div>
+              <div class="mac-titlebar-center">MEMORY GAME</div>
+            </div>
+            <div class="memory-lobby-inner">
+              <div class="memory-lobby-icon">( * _ * )</div>
+              <p class="memory-lobby-desc">Answer questions based on your Knowledge Bank &amp; Curiosity Box.<br />A wrong answer triggers a mini-game penalty!</p>
+              <div class="memory-lobby-stats-row">
+                <div class="memory-lobby-stat-box">
+                  <div class="memory-lobby-stat-num" id="memory-kb-count">0</div>
+                  <div class="memory-lobby-stat-lbl">Knowledge Bank</div>
+                </div>
+                <div class="memory-lobby-stat-sep">+</div>
+                <div class="memory-lobby-stat-box">
+                  <div class="memory-lobby-stat-num" id="memory-cb-count">0</div>
+                  <div class="memory-lobby-stat-lbl">Curiosity Box</div>
+                </div>
+              </div>
+              <p class="memory-lobby-hint" id="memory-pool-hint">Loading...</p>
+              <div class="memory-lobby-help">
+                <div>[+] Correct answer = +50 gems</div>
+                <div>[!] Wrong answer = mini-game penalty</div>
+                <div>[ ] 10 rounds per game</div>
+              </div>
+              <button class="btn-primary" id="memory-start-btn" style="max-width:260px;margin-top:18px">Start Game -&gt;</button>
+            </div>
+          </div>
         </div>
 
         <!-- Active game -->
         <div id="memory-game" class="memory-game hidden">
           <!-- Question card -->
           <div class="memory-card">
-            <div class="memory-card-header">
-              <div class="mac-titlebar-style">
-                <div class="mac-close-box" id="memory-quit-btn" title="Quit game"></div>
-                <span class="memory-round-label" id="memory-round-label">Round 1 / 10</span>
-              </div>
+            <div class="mac-titlebar">
+              <div class="mac-close-box" id="memory-quit-btn" title="Quit game"></div>
+              <div class="mac-titlebar-center" id="memory-round-label">Round 1 / 10</div>
             </div>
-            <div class="memory-question-area">
+            <div class="memory-progress-wrap">
+              <div id="memory-progress-bar" class="memory-progress-bar"></div>
+            </div>
+            <div class="memory-card-body">
               <div class="memory-topic-tag" id="memory-topic-tag">Topic</div>
-              <div class="memory-question" id="memory-question">...</div>
+              <div class="memory-question" id="memory-question">Generating question...</div>
             </div>
           </div>
 
@@ -195,30 +220,44 @@
           <!-- Feedback + next -->
           <div class="memory-feedback hidden" id="memory-feedback">
             <div class="memory-feedback-text" id="memory-feedback-text"></div>
-            <button class="btn-primary btn-primary-sm" id="memory-next-btn" style="margin-top:12px">Next -></button>
+            <button class="btn-primary btn-primary-sm" id="memory-next-btn" style="margin-top:12px">Next -&gt;</button>
           </div>
 
-          <!-- Mini-game overlay -->
+          <!-- Mini-game overlay (penalty) -->
           <div id="memory-minigame-overlay" class="memory-minigame-overlay hidden">
             <div class="memory-minigame-card">
-              <div class="mac-titlebar-style">
-                <div class="mac-close-box" id="memory-skip-minigame"></div>
-                <span id="memory-mg-title" class="memory-mg-title">Mini-Game</span>
+              <div class="mac-titlebar">
+                <div class="mac-close-box" id="memory-skip-minigame" title="Skip mini-game"></div>
+                <div class="mac-titlebar-center" id="memory-mg-title">Mini-Game</div>
               </div>
-              <p id="memory-mg-desc" class="memory-mg-desc"></p>
-              <div id="memory-mg-arena" class="memory-mg-arena"></div>
+              <div class="memory-mg-content">
+                <p id="memory-mg-desc" class="memory-mg-desc"></p>
+                <div id="memory-mg-arena" class="memory-mg-arena"></div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Game over -->
         <div id="memory-gameover" class="memory-gameover hidden">
-          <div class="memory-gameover-icon" id="memory-gameover-icon">\o/</div>
-          <h2 id="memory-gameover-title">Game Over!</h2>
-          <p id="memory-gameover-result"></p>
-          <div class="memory-gameover-stats" id="memory-gameover-stats"></div>
-          <button class="btn-primary" id="memory-play-again-btn" style="max-width:240px;margin-top:20px">Play Again</button>
+          <div class="memory-gameover-window">
+            <div class="mac-titlebar">
+              <div class="mac-close-box" id="memory-gameover-close"></div>
+              <div class="mac-titlebar-center">RESULTS</div>
+            </div>
+            <div class="memory-gameover-inner">
+              <div class="memory-gameover-icon" id="memory-gameover-icon">\o/</div>
+              <h2 id="memory-gameover-title">Game Over!</h2>
+              <p id="memory-gameover-result"></p>
+              <div class="memory-gameover-stats" id="memory-gameover-stats"></div>
+              <div class="memory-gameover-btns">
+                <button class="btn-primary btn-primary-sm" id="memory-play-again-btn">Play Again</button>
+                <button class="btn-ghost" id="memory-gameover-menu-btn">Main Menu</button>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </main>
 

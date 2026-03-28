@@ -1002,6 +1002,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (memNextBtn) memNextBtn.addEventListener('click', nextMemoryRound);
   const memSkipMg = document.getElementById('memory-skip-minigame');
   if (memSkipMg) memSkipMg.addEventListener('click', resolveMemoryMinigame);
+  const memLobbyClose = document.getElementById('memory-lobby-close');
+  if (memLobbyClose) memLobbyClose.addEventListener('click', () => showView('chat'));
+  const memGameoverClose = document.getElementById('memory-gameover-close');
+  if (memGameoverClose) memGameoverClose.addEventListener('click', () => {
+    document.getElementById('memory-gameover').classList.add('hidden');
+    document.getElementById('memory-lobby').classList.remove('hidden');
+  });
+  const memGameoverMenuBtn = document.getElementById('memory-gameover-menu-btn');
+  if (memGameoverMenuBtn) memGameoverMenuBtn.addEventListener('click', () => {
+    document.getElementById('memory-gameover').classList.add('hidden');
+    document.getElementById('memory-lobby').classList.remove('hidden');
+  });
 });
 
 // Expose sendMessage globally so popup.js (IIFE) can call window.sendMessage()
@@ -1102,14 +1114,18 @@ function playMemorySound(type) {
 
 function updateMemoryLobbyHint() {
   const hint = document.getElementById('memory-pool-hint');
+  const kbEl = document.getElementById('memory-kb-count');
+  const cbEl = document.getElementById('memory-cb-count');
+  if (kbEl) kbEl.textContent = knowledgeBank.length;
+  if (cbEl) cbEl.textContent = curiosityBox.length;
   if (!hint) return;
   const total = knowledgeBank.length + curiosityBox.length;
   if (total === 0) {
-    hint.textContent = 'Add topics to your Knowledge Bank or Curiosity Box to generate questions!';
+    hint.textContent = 'Add topics to your Knowledge Bank or Curiosity Box to get started!';
     const startBtn = document.getElementById('memory-start-btn');
     if (startBtn) startBtn.disabled = true;
   } else {
-    hint.textContent = `${total} topic${total !== 1 ? 's' : ''} available (${knowledgeBank.length} learned, ${curiosityBox.length} in Curiosity Box)`;
+    hint.textContent = `${total} topic${total !== 1 ? 's' : ''} ready to quiz you.`;
     const startBtn = document.getElementById('memory-start-btn');
     if (startBtn) startBtn.disabled = false;
   }
@@ -1138,17 +1154,22 @@ async function generateSingleQuestion(topic, alreadyAsked) {
     ? `\nDo NOT repeat or closely resemble these already-asked questions:\n${alreadyAsked.map(q => `- ${q.question}`).join('\n')}`
     : '';
 
-  const prompt = `Create one multiple-choice quiz question that tests real understanding of "${topic}".${avoidCtx}
+    const bankCtx = knowledgeBank.length > 1
+    ? `\nUser has also learned: ${knowledgeBank.filter(t => t !== topic).slice(0,5).join(', ')} — you may draw connections between "${topic}" and these concepts.`
+    : '';
+
+  const prompt = `Create a challenging multiple-choice quiz question that tests deep understanding of "${topic}".${avoidCtx}${bankCtx}
 
 Return ONLY this JSON object — no markdown, no extra text:
 {"topic":"${topic.replace(/"/g, '\\"')}","question":"question text here?","choices":["A) first option","B) second option","C) third option","D) fourth option"],"correct":"B"}
 
-Rules:
-- Test conceptual understanding, NOT just word recognition
-- All 4 answer choices must be plausible and on-topic (no obviously silly wrong answers)
-- One concise sentence for the question
-- The correct answer letter should vary (don't always use A)
-- Base the question on what someone learning this topic would actually need to know`;
+Requirements:
+- Ask about a specific mechanism, edge case, or application — NOT a simple definition
+- All 4 choices must be plausible; include at least one common misconception as a wrong answer
+- The question should require real understanding, not just memorizing a term
+- One clear, concise sentence for the question
+- Vary the correct answer letter (not always A or B)
+- Intermediate to advanced difficulty — make the student think`;
 
   const data = await geminiRequest({
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -1186,6 +1207,9 @@ async function showMemoryRound() {
   document.getElementById('memory-answers').innerHTML       = '';
   document.getElementById('memory-feedback').classList.add('hidden');
   document.getElementById('memory-next-btn').classList.add('hidden');
+  // Update round progress bar
+  const progressBar = document.getElementById('memory-progress-bar');
+  if (progressBar) progressBar.style.width = ((memoryRound / MEMORY_ROUNDS) * 100) + '%';
 
   let q;
   try {
@@ -1292,10 +1316,11 @@ function runMemoryMinigame() {
     overlay.classList.remove('hidden');
 
     const games = [
-      mgGameClickTarget, mgGameSimon, mgGameHacker, mgGameAimLab,
-      mgGameStopwatch, mgGameHold, mgGameDefuse, mgGameRhythm,
-      mgGameClickArena, mgGameMemoryMatch, mgGameFreeze, mgGameDodge,
-      mgGameOsu, mgGameMaze, mgGameFindImposter
+      mgGameClickTarget, mgGameSimon,   mgGameHacker,  mgGameAimLab,
+      mgGameStopwatch,   mgGameHold,    mgGameDefuse,  mgGameRhythm,
+      mgGameClickArena,  mgGameMemoryMatch, mgGameFreeze, mgGameDodge,
+      mgGameOsu,         mgGameMaze,    mgGameFindImposter, mgGameGeoDash,
+      mgGameWhack,       mgGameRespect, mgGameBattle,  mgGameUFO, mgGamePopup
     ];
     const game = games[Math.floor(Math.random() * games.length)];
     game();
@@ -1405,7 +1430,7 @@ function mgGameSimon() {
 function mgGameHacker() {
   setMgInfo('OVERRIDE CODE', 'Type the exact code shown!');
   const arena = getMgArena();
-  const codes  = ['CURIO', 'LEARN', 'SIGMA', 'SKIBIDI', 'RIZZ'];
+  const codes  = ['UNLOCK', 'EXECUTE', 'OVERRIDE', 'COMPILE', 'REBOOT'];
   const target = codes[Math.floor(Math.random() * codes.length)];
   arena.innerHTML = `
     <div class="mg-hacker">
@@ -1698,7 +1723,6 @@ function mgGameFindImposter() {
   setMgInfo('IMPOSTER!', 'Click the odd one out!');
   const arena = getMgArena();
   arena.innerHTML = `<div class="mg-imposters" id="mg-imp"></div>`;
-  // Use ASCII faces instead of emoji
   const normal = ':^)';
   const odd    = ';^)';
   const items  = Array(23).fill(normal).concat([odd]);
@@ -1713,4 +1737,256 @@ function mgGameFindImposter() {
     });
     document.getElementById('mg-imp').appendChild(el);
   });
+}
+
+// 16. Geometry Dash
+function mgGameGeoDash() {
+  setMgInfo('GEOMETRY DASH', 'Click or press SPACE to jump over the spike!');
+  const arena = getMgArena();
+  arena.innerHTML = `
+    <div style="position:absolute;bottom:30px;left:0;right:0;height:3px;background:#000;"></div>
+    <div id="mg-gd-cube" style="position:absolute;bottom:33px;left:44px;width:30px;height:30px;background:#000;border:2px solid #555;transition:transform 0.45s cubic-bezier(0.2,1,0.3,1);"></div>
+    <div id="mg-gd-spike" style="position:absolute;bottom:33px;right:0;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:30px solid #e53935;"></div>
+    <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;">CLICK or [SPACE] to jump</div>
+  `;
+  let spikePos = 100, isJumping = false;
+  const cube  = document.getElementById('mg-gd-cube');
+  const spike = document.getElementById('mg-gd-spike');
+  mgAddInterval(() => {
+    spikePos -= 2.5;
+    spike.style.right = (100 - spikePos) + '%';
+    if (spikePos < 20 && spikePos > 3 && !isJumping) {
+      playMemorySound('error');
+      spikePos = 100;
+    }
+    if (spikePos < -5) resolveMemoryMinigame();
+  }, 20);
+  const jump = () => {
+    if (isJumping) return;
+    isJumping = true;
+    playMemorySound('pop');
+    cube.style.transform = 'translateY(-72px) rotate(90deg)';
+    mgAddTimeout(() => { cube.style.transform = 'translateY(0) rotate(180deg)'; isJumping = false; }, 480);
+  };
+  arena.addEventListener('mousedown', jump);
+  window.onkeydown = (e) => { if (e.code === 'Space') { e.preventDefault(); jump(); } };
+}
+
+// 17. Whack-A-Mole
+function mgGameWhack() {
+  setMgInfo('WHACK-A-MOLE', 'Whack 5 moles before they hide!');
+  const arena = getMgArena();
+  arena.innerHTML = `<div class="mg-mole-grid" id="mg-moles"></div>`;
+  const grid = document.getElementById('mg-moles');
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'mg-mole-cell';
+    grid.appendChild(cell);
+  }
+  let remaining = 5;
+  const spawnMole = () => {
+    const cells     = grid.querySelectorAll('.mg-mole-cell');
+    const available = [...cells].filter(c => !c.querySelector('.mg-mole'));
+    if (available.length === 0) { mgAddTimeout(spawnMole, 300); return; }
+    const cell = available[Math.floor(Math.random() * available.length)];
+    const mole = document.createElement('div');
+    mole.className   = 'mg-mole';
+    mole.textContent = '(o_o)';
+    const hideTimer = mgAddTimeout(() => {
+      if (mole.parentNode) mole.remove();
+      mgAddTimeout(spawnMole, 300);
+    }, 1300);
+    mole.addEventListener('mousedown', () => {
+      clearTimeout(hideTimer);
+      playMemorySound('pop');
+      mole.textContent = '(x_x)';
+      mole.style.background = '#aaa';
+      mgAddTimeout(() => {
+        if (mole.parentNode) mole.remove();
+        remaining--;
+        if (remaining <= 0) resolveMemoryMinigame();
+        else mgAddTimeout(spawnMole, 200);
+      }, 250);
+    });
+    cell.appendChild(mole);
+  };
+  mgAddTimeout(spawnMole, 500);
+}
+
+// 18. Pay Respects (F key mashing)
+function mgGameRespect() {
+  setMgInfo('PAY RESPECTS', 'Mash the [F] key 15 times!');
+  const arena = getMgArena();
+  let remaining = 15;
+  arena.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:18px;">
+      <div id="mg-f-key" class="mg-f-key">F</div>
+      <div style="width:180px;height:12px;border:2px solid #000;background:#eee;">
+        <div id="mg-f-bar" style="height:100%;background:#000;width:0;transition:width 0.08s;"></div>
+      </div>
+      <div id="mg-f-rem" style="font-family:var(--font-mono);font-size:13px;">${remaining} remaining</div>
+    </div>`;
+  const keyUI = document.getElementById('mg-f-key');
+  const bar   = document.getElementById('mg-f-bar');
+  const remEl = document.getElementById('mg-f-rem');
+  window.onkeydown = (e) => {
+    if (e.key.toLowerCase() === 'f') {
+      playMemorySound('pop');
+      remaining--;
+      bar.style.width = ((15 - remaining) / 15) * 100 + '%';
+      remEl.textContent = remaining + ' remaining';
+      keyUI.style.background = '#000'; keyUI.style.color = '#fff';
+      mgAddTimeout(() => { keyUI.style.background = '#fff'; keyUI.style.color = '#000'; }, 80);
+      if (remaining <= 0) { window.onkeydown = null; resolveMemoryMinigame(); }
+    } else { playMemorySound('error'); }
+  };
+}
+
+// 19. Battle (ASCII/Mac style - no external audio)
+function mgGameBattle() {
+  setMgInfo('WILD ENCOUNTER', 'Defeat the creature! Attack or Heal to survive.');
+  const arena = getMgArena();
+  arena.innerHTML = `
+    <div class="mg-poke-bg">
+      <div class="mg-poke-enemy-side">
+        <div class="mg-poke-info-box">
+          <div class="mg-poke-name">DRAGON  Lv.50</div>
+          <div class="mg-poke-hpbar-wrap"><div id="mg-pk-ehp" class="mg-poke-hpbar"></div></div>
+        </div>
+        <div class="mg-poke-sprite mg-poke-enemy">[X_X]</div>
+      </div>
+      <div class="mg-poke-player-side">
+        <div class="mg-poke-sprite mg-poke-player">[^_^]</div>
+        <div class="mg-poke-info-box">
+          <div class="mg-poke-name">YOU  Lv.50</div>
+          <div class="mg-poke-hpbar-wrap"><div id="mg-pk-php" class="mg-poke-hpbar"></div></div>
+          <div id="mg-pk-hpnum" class="mg-poke-hpnum">100 / 100</div>
+        </div>
+      </div>
+      <div id="mg-pk-ctrl" class="mg-poke-ctrl">
+        <button id="mg-pk-atk"  class="mg-btn">ATTACK</button>
+        <button id="mg-pk-heal" class="mg-btn">HEAL</button>
+      </div>
+    </div>`;
+  let ehp = 100, php = 100, playerTurn = true;
+  const eBar   = document.getElementById('mg-pk-ehp');
+  const pBar   = document.getElementById('mg-pk-php');
+  const hpNum  = document.getElementById('mg-pk-hpnum');
+  const ctrl   = document.getElementById('mg-pk-ctrl');
+  const enemy  = arena.querySelector('.mg-poke-enemy');
+  const player = arena.querySelector('.mg-poke-player');
+  const updateHp = () => {
+    eBar.style.width = Math.max(0, ehp) + '%';
+    pBar.style.width = Math.max(0, php) + '%';
+    eBar.style.background = ehp > 50 ? '#43a047' : ehp > 20 ? '#fb8c00' : '#e53935';
+    pBar.style.background = php > 50 ? '#43a047' : php > 20 ? '#fb8c00' : '#e53935';
+    hpNum.textContent = Math.max(0, php) + ' / 100';
+  };
+  const enemyAttack = () => {
+    if (!document.getElementById('mg-pk-ctrl')) return;
+    const dmg = 15 + Math.floor(Math.random() * 20);
+    php -= dmg; updateHp(); playMemorySound('error');
+    player.style.opacity = '0.3';
+    mgAddTimeout(() => { player.style.opacity = '1'; }, 220);
+    if (php <= 0) { mgAddTimeout(mgGameBattle, 700); }
+    else { playerTurn = true; ctrl.style.opacity = '1'; ctrl.style.pointerEvents = 'auto'; }
+  };
+  document.getElementById('mg-pk-atk').addEventListener('mousedown', () => {
+    if (!playerTurn) return;
+    playerTurn = false; ctrl.style.opacity = '0.4'; ctrl.style.pointerEvents = 'none';
+    const dmg = 20 + Math.floor(Math.random() * 25);
+    ehp -= dmg; updateHp(); playMemorySound('pop');
+    enemy.style.opacity = '0.3';
+    mgAddTimeout(() => { enemy.style.opacity = '1'; }, 220);
+    if (ehp <= 0) {
+      enemy.textContent = '[._.]';
+      enemy.style.opacity = '0.25';
+      playMemorySound('success');
+      mgAddTimeout(resolveMemoryMinigame, 700);
+    } else mgAddTimeout(enemyAttack, 900);
+  });
+  document.getElementById('mg-pk-heal').addEventListener('mousedown', () => {
+    if (!playerTurn) return;
+    playerTurn = false; ctrl.style.opacity = '0.4'; ctrl.style.pointerEvents = 'none';
+    php = Math.min(100, php + 30); updateHp(); playMemorySound('beep');
+    mgAddTimeout(enemyAttack, 900);
+  });
+}
+
+// 20. UFO Tracker
+function mgGameUFO() {
+  setMgInfo('UFO TRACKER', 'Keep your cursor on the UFO until the bar fills!');
+  const arena = getMgArena();
+  arena.innerHTML = `
+    <div id="mg-ufo" class="mg-ufo-target">[ UFO ]</div>
+    <div style="position:absolute;bottom:6px;left:6px;right:6px;">
+      <div style="font-family:var(--font-mono);font-size:10px;color:#666;margin-bottom:3px;">LOCK-ON PROGRESS</div>
+      <div style="height:12px;border:2px solid #000;background:#eee;">
+        <div id="mg-ufo-bar" style="height:100%;background:#000;width:0;transition:width 0.06s;"></div>
+      </div>
+    </div>`;
+  const ufo  = document.getElementById('mg-ufo');
+  const bar  = document.getElementById('mg-ufo-bar');
+  let progress = 0, hovering = false;
+  // Set initial position
+  ufo.style.top  = '30%';
+  ufo.style.left = '35%';
+  ufo.addEventListener('mouseenter', () => { hovering = true;  ufo.style.outline = '3px solid #000'; });
+  ufo.addEventListener('mouseleave', () => { hovering = false; ufo.style.outline = ''; });
+  mgAddInterval(() => {
+    ufo.style.top  = (8  + Math.random() * 52) + '%';
+    ufo.style.left = (8  + Math.random() * 62) + '%';
+  }, 950);
+  mgAddInterval(() => {
+    if (hovering) progress += 4; else progress = Math.max(0, progress - 2);
+    bar.style.width = progress + '%';
+    if (progress >= 100) resolveMemoryMinigame();
+  }, 50);
+}
+
+// 21. Adware Virus (close error popups)
+function mgGamePopup() {
+  mgClearAll(); // reset timers on retry
+  setMgInfo('ADWARE VIRUS', 'Close all 5 error popups before time runs out!');
+  const arena = getMgArena();
+  arena.innerHTML = `
+    <div id="mg-popup-container" style="position:absolute;inset:0 0 24px 0;overflow:hidden;"></div>
+    <div style="position:absolute;bottom:6px;left:6px;right:6px;">
+      <div style="font-family:var(--font-mono);font-size:10px;color:#666;margin-bottom:2px;">TIME REMAINING</div>
+      <div style="height:8px;border:2px solid #000;background:#eee;">
+        <div id="mg-popup-timer" style="height:100%;background:#000;width:100%;transition:width 0.1s;"></div>
+      </div>
+    </div>`;
+  let remaining = 5;
+  let timeLeft  = 100;
+  mgAddInterval(() => {
+    timeLeft -= 1.8;
+    const t = document.getElementById('mg-popup-timer');
+    if (t) t.style.width = Math.max(0, timeLeft) + '%';
+    if (timeLeft <= 0) { playMemorySound('error'); mgGamePopup(); }
+  }, 100);
+  for (let i = 0; i < 5; i++) {
+    mgAddTimeout(() => {
+      const container = document.getElementById('mg-popup-container');
+      if (!container) return;
+      const popup = document.createElement('div');
+      popup.className = 'mg-popup-window';
+      popup.style.top  = (5  + Math.random() * 40) + '%';
+      popup.style.left = (5  + Math.random() * 40) + '%';
+      popup.innerHTML  = `
+        <div class="mg-popup-titlebar">
+          <span class="mg-popup-close">[X]</span>
+          <span>ERROR</span>
+        </div>
+        <div class="mg-popup-body">CRITICAL SYSTEM ERROR<br>click [X] to dismiss</div>`;
+      popup.querySelector('.mg-popup-close').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        playMemorySound('pop');
+        popup.remove();
+        remaining--;
+        if (remaining <= 0) resolveMemoryMinigame();
+      });
+      container.appendChild(popup);
+    }, i * 380);
+  }
 }

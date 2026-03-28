@@ -1641,3 +1641,422 @@ body {
   border: 1px solid transparent;
 }
 .mg-imposter-face:hover { border-color: #000; }
+
+/* ══════════════════════════════════════════════════════════
+   MEMORY GAME — IMPROVED UI
+══════════════════════════════════════════════════════════ */
+
+/* Lobby window */
+#memory-lobby,
+.memory-lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 24px 16px;
+  gap: 0;
+}
+
+.memory-lobby-window {
+  width: 100%;
+  max-width: 420px;
+  border: var(--border);
+  box-shadow: 4px 4px 0 var(--black);
+  background: var(--white);
+}
+
+.memory-lobby-inner {
+  padding: 24px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.memory-lobby-icon {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  letter-spacing: 2px;
+}
+
+.memory-lobby-desc {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--gray-dark);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 340px;
+}
+
+.memory-lobby-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: var(--border);
+  padding: 12px 20px;
+  background: var(--white);
+  box-shadow: 2px 2px 0 var(--black);
+  width: 100%;
+  justify-content: center;
+}
+
+.memory-lobby-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.memory-lobby-stat-num {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.memory-lobby-stat-lbl {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gray-dark);
+}
+
+.memory-lobby-stat-sep {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--gray-mid);
+  padding: 0 4px;
+}
+
+.memory-lobby-hint {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--gray-dark);
+  text-align: center;
+  line-height: 1.5;
+  border: 1px dashed var(--gray-mid);
+  padding: 8px 14px;
+  width: 100%;
+}
+
+.memory-lobby-help {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--gray-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 0;
+  border-top: 1px solid var(--gray-light);
+}
+
+/* Memory progress bar */
+.memory-progress-wrap {
+  height: 6px;
+  border-bottom: 2px solid var(--black);
+  background: #eee;
+  overflow: hidden;
+}
+
+.memory-progress-bar {
+  height: 100%;
+  background: var(--black);
+  width: 0;
+  transition: width 0.4s ease;
+}
+
+/* Memory card body */
+.memory-card-body {
+  padding: 14px 16px;
+}
+
+/* Minigame overlay - bigger and cleaner */
+.memory-minigame-card {
+  background: var(--white);
+  border: var(--border);
+  box-shadow: 6px 6px 0 var(--black);
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+#memory-mg-arena {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  border: var(--border);
+  background: var(--white);
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.memory-mg-content {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#memory-mg-desc {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--gray-dark);
+  line-height: 1.5;
+}
+
+/* Memory game over window */
+#memory-gameover,
+.memory-gameover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 24px 16px;
+  text-align: unset;
+  gap: 0;
+}
+
+.memory-gameover-window {
+  width: 100%;
+  max-width: 380px;
+  border: var(--border);
+  box-shadow: 4px 4px 0 var(--black);
+  background: var(--white);
+}
+
+.memory-gameover-inner {
+  padding: 24px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.memory-gameover-icon {
+  font-family: var(--font-mono);
+  font-size: 44px;
+}
+
+#memory-gameover-title {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+#memory-gameover-result {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--gray-dark);
+}
+
+#memory-gameover-stats {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--gray-dark);
+  border: 1px dashed var(--gray-mid);
+  padding: 8px 16px;
+}
+
+.memory-gameover-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NEW MINI-GAME ELEMENTS
+══════════════════════════════════════════════════════════ */
+
+/* Whack-A-Mole */
+.mg-mole-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 6px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.mg-mole-cell {
+  border: 2px solid #000;
+  background: #c8aa70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  position: relative;
+}
+
+.mg-mole {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 4px 7px;
+  background: var(--white);
+  border: 2px solid #000;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 2px 2px 0 #000;
+  animation: moleUp 0.18s ease-out;
+}
+
+@keyframes moleUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Pay Respects F key */
+.mg-f-key {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  font-weight: bold;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  user-select: none;
+  transition: background 0.07s, color 0.07s;
+}
+
+/* Battle / Pokemon ASCII style */
+.mg-poke-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.mg-poke-enemy-side,
+.mg-poke-player-side {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.mg-poke-info-box {
+  width: 48%;
+  padding: 5px 8px;
+  border: 2px solid #000;
+  background: var(--white);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.mg-poke-name {
+  font-weight: bold;
+  font-size: 11px;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.mg-poke-hpbar-wrap {
+  height: 10px;
+  border: 2px solid #000;
+  background: #eee;
+  overflow: hidden;
+}
+
+.mg-poke-hpbar {
+  height: 100%;
+  background: #43a047;
+  width: 100%;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.mg-poke-hpnum {
+  font-size: 10px;
+  margin-top: 3px;
+  color: var(--gray-dark);
+}
+
+.mg-poke-sprite {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  border: 2px solid #000;
+  padding: 4px 10px;
+  background: #f5f5f5;
+  box-shadow: 2px 2px 0 #000;
+  transition: opacity 0.2s;
+  user-select: none;
+}
+
+.mg-poke-ctrl {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  transition: opacity 0.2s;
+}
+
+/* UFO Tracker */
+.mg-ufo-target {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: bold;
+  padding: 5px 12px;
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  cursor: crosshair;
+  user-select: none;
+  transition: top 0.45s ease, left 0.45s ease;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+}
+
+/* Adware / Popup windows */
+.mg-popup-window {
+  position: absolute;
+  background: var(--white);
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  min-width: 130px;
+  font-family: var(--font-mono);
+  z-index: 10;
+}
+
+.mg-popup-titlebar {
+  background: #000;
+  color: #fff;
+  font-size: 11px;
+  padding: 3px 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.mg-popup-close {
+  cursor: pointer;
+  font-weight: bold;
+  user-select: none;
+  padding: 0 3px;
+  background: transparent;
+  color: #fff;
+}
+.mg-popup-close:hover { background: #fff; color: #000; }
+
+.mg-popup-body {
+  font-size: 11px;
+  padding: 8px 10px;
+  text-align: center;
+  line-height: 1.5;
+}
