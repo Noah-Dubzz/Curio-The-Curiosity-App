@@ -545,13 +545,19 @@ async function toggleMic() {
   const chatInput = document.getElementById('chat-input');
   const micBtn    = document.getElementById('mic-btn');
 
-  // Pick the best supported MIME type
-  const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', '']
-    .find(t => t === '' || MediaRecorder.isTypeSupported(t));
+  // Pick the best supported MIME type (ordered by quality/compatibility)
+  const mimeType = [
+    'audio/webm;codecs=opus',  // Chrome, Opera GX, Edge
+    'audio/webm',              // Chrome fallback
+    'audio/ogg;codecs=opus',   // Firefox
+    'audio/mp4',               // Safari / iOS
+    ''                         // browser default
+  ].find(t => t === '' || MediaRecorder.isTypeSupported(t));
 
   audioChunks   = [];
   mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
-
+  // Capture now  mediaRecorder.mimeType may be cleared by the time onstop fires
+  const effectiveMimeType = mediaRecorder.mimeType || mimeType || 'audio/webm';
   mediaRecorder.ondataavailable = (e) => {
     if (e.data && e.data.size > 0) audioChunks.push(e.data);
   };
@@ -580,7 +586,7 @@ async function toggleMic() {
     showToast('( Transcribing... )');
 
     try {
-      const blob         = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      const blob         = new Blob(audioChunks, { type: effectiveMimeType });
       const safeMimeType = blob.type.split(';')[0]; // strip codec params for Gemini
       const arrayBuffer  = await blob.arrayBuffer();
       const audioData    = arrayBufferToBase64(arrayBuffer);
@@ -616,7 +622,9 @@ async function toggleMic() {
     mediaRecorder = null;
   };
 
-  mediaRecorder.start();
+  // timeslice=250ms ensures ondataavailable fires regularly, not just on stop
+  // (needed for Opera GX and some Chromium builds)
+  mediaRecorder.start(250);
 }
 // ── Sidebar Toggle ────────────────────────────────────────────
 function toggleSidebar() {
