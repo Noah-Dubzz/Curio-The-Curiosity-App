@@ -1,6 +1,25 @@
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
+// Retry up to 3 times on 429 / 503, with exponential backoff (1s, 2s, 4s)
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  const RETRYABLE = new Set([429, 500, 503]);
+  let lastStatus = 0;
+  let lastData   = {};
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const res  = await fetch(url, options);
+    const data = await res.json();
+    if (res.ok) return { status: res.status, data };
+    lastStatus = res.status;
+    lastData   = data;
+    if (!RETRYABLE.has(res.status)) break;
+    if (attempt < maxRetries - 1) {
+      await new Promise(r => setTimeout(r, (2 ** attempt) * 1000));
+    }
+  }
+  return { status: lastStatus, data: lastData };
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed.' }) };
@@ -42,17 +61,18 @@ exports.handler = async (event) => {
   // ------ End validation ------
 
   try {
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemInstruction, contents, generationConfig })
-    });
+    const { status, data } = await fetchWithRetry(
+      `${GEMINI_URL}?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ systemInstruction, contents, generationConfig })
+      }
+    );
 
-    const data = await geminiRes.json();
-
-    if (!geminiRes.ok) {
+    if (status !== 200) {
       const errMsg = data?.error?.message || 'Gemini API error.';
-      return { statusCode: geminiRes.status, body: JSON.stringify({ error: errMsg }) };
+      return { statusCode: status, body: JSON.stringify({ error: errMsg }) };
     }
 
     return {

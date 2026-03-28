@@ -278,7 +278,14 @@ async function sendMessage() {
     }
   } catch (err) {
     showTyping(false);
-    addMessage(`Something went wrong: ${err.message}`, 'bot');
+    // Pop the failed user message back out so the user can retry without it poisoning history
+    if (conversationHistory.length && conversationHistory[conversationHistory.length - 1].role === 'user') {
+      conversationHistory.pop();
+    }
+    const friendly = err.message.includes('503')
+      ? 'Curio is a little overloaded right now — give it a second and try again!'
+      : `Something went wrong: ${err.message}`;
+    addMessage(friendly, 'bot');
   } finally {
     awaitingResponse = false;
   }

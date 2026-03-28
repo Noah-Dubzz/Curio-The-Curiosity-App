@@ -10,6 +10,25 @@ const PORT = process.env.PORT || 3000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_URL     = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
+// Retry up to 3 times on 429 / 500 / 503 with exponential backoff (1s, 2s, 4s)
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  const RETRYABLE = new Set([429, 500, 503]);
+  let lastRes  = null;
+  let lastData = {};
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const res  = await fetch(url, options);
+    const data = await res.json();
+    if (res.ok) return { status: res.status, data };
+    lastRes  = res;
+    lastData = data;
+    if (!RETRYABLE.has(res.status)) break;
+    if (attempt < maxRetries - 1) {
+      await new Promise(r => setTimeout(r, (2 ** attempt) * 1000));
+    }
+  }
+  return { status: lastRes?.status || 500, data: lastData };
+}
+
 if (!GEMINI_API_KEY) {
   console.error('ERROR: GEMINI_API_KEY is not set in the .env file.');
   process.exit(1);
@@ -71,17 +90,18 @@ app.post('/api/gemini', limiter, async (req, res) => {
   // ------ End validation ------
 
   try {
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemInstruction, contents, generationConfig })
-    });
+    const { status, data } = await fetchWithRetry(
+      `${GEMINI_URL}?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ systemInstruction, contents, generationConfig })
+      }
+    );
 
-    const data = await geminiRes.json();
-
-    if (!geminiRes.ok) {
+    if (status !== 200) {
       const errMsg = data?.error?.message || 'Gemini API error.';
-      return res.status(geminiRes.status).json({ error: errMsg });
+      return res.status(status).json({ error: errMsg });
     }
 
     res.json(data);
