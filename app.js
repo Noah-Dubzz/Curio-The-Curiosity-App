@@ -569,6 +569,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Chat header
   const menuBtn = document.getElementById('menu-btn');
   if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
+
+  // Extension popup: close sidebar when backdrop or X box is clicked
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', toggleSidebar);
+  const sidebarClose = document.getElementById('sidebar-close');
+  if (sidebarClose) sidebarClose.addEventListener('click', toggleSidebar);
+
   const ttsBtn = document.getElementById('tts-btn');
   if (ttsBtn) ttsBtn.addEventListener('click', toggleTTS);
   const assistantBtn = document.getElementById('open-assistant-btn');

@@ -1,0 +1,729 @@
+/* ============================================================
+   Curio – Chrome Extension Popup Styles
+   400 × 580px fixed canvas, Mac OS System 7 aesthetic
+   Links after popup.css so body rules override correctly
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* ── Reset & base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 400px;
+  height: 580px;
+  overflow: hidden;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 16px;
+  background: #fff;
+  /* override popup.css body { width:380px; overflow:hidden } */
+}
+
+.hidden { display: none !important; }
+
+/* ── Mac chrome shared pieces ─────────────────────────────── */
+.mac-close-box {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* Pinstripe title bar mixin (used as background shorthand below) */
+
+/* ═══════════════════════════════════════════════════════════
+   SETUP SCREEN
+   ═══════════════════════════════════════════════════════════ */
+.setup-screen {
+  width: 400px;
+  height: 580px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setup-card {
+  width: 340px;
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  background: #fff;
+}
+
+.setup-card-header {
+  height: 28px;
+  background: #1a1a1a;
+  background-image: repeating-linear-gradient(
+    90deg, transparent, transparent 3px,
+    rgba(255,255,255,0.07) 3px, rgba(255,255,255,0.07) 4px
+  );
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 8px;
+}
+
+.setup-card-title {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  flex: 1;
+  text-align: center;
+}
+
+.setup-card-body {
+  padding: 20px;
+}
+
+.setup-logo {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.setup-logo .logo-icon {
+  font-size: 30px;
+  font-family: 'VT323', 'Courier New', monospace;
+  margin-bottom: 4px;
+}
+
+.setup-logo h1 {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 34px;
+  letter-spacing: 5px;
+  font-weight: normal;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.setup-logo .tagline {
+  font-size: 14px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+.setup-form .form-group {
+  margin-bottom: 12px;
+}
+
+.setup-form .form-group label {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.setup-form .form-group input {
+  width: 100%;
+  height: 34px;
+  border: 2px solid #000;
+  background: #fff;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 16px;
+  padding: 0 10px;
+  outline: none;
+}
+
+.setup-form .form-group input:focus {
+  box-shadow: 2px 2px 0 #000;
+}
+
+.btn-primary {
+  width: 100%;
+  height: 36px;
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 17px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #555;
+  margin-top: 4px;
+}
+
+.btn-primary:hover  { background: #333; }
+.btn-primary:active { transform: translate(2px,2px); box-shadow: none; }
+
+/* ═══════════════════════════════════════════════════════════
+   APP SHELL
+   ═══════════════════════════════════════════════════════════ */
+.app {
+  width: 400px;
+  height: 580px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR  (absolute drawer — starts collapsed)
+   ═══════════════════════════════════════════════════════════ */
+.sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100%;
+  background: #fff;
+  border-right: 2px solid #000;
+  box-shadow: 4px 0 8px rgba(0,0,0,0.2);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform 0.18s ease;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+/* Backdrop: shown via adjacent sibling when sidebar is open */
+.sidebar-backdrop {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 199;
+  background: rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+
+/* The sidebar comes first in the DOM, backdrop is the next sibling */
+#sidebar:not(.collapsed) + .sidebar-backdrop {
+  display: block;
+}
+
+.sidebar-header {
+  height: 28px;
+  flex-shrink: 0;
+  background: #1a1a1a;
+  background-image: repeating-linear-gradient(
+    90deg, transparent, transparent 3px,
+    rgba(255,255,255,0.07) 3px, rgba(255,255,255,0.07) 4px
+  );
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 8px;
+}
+
+.brand-name {
+  flex: 1;
+  text-align: center;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+  font-weight: normal;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #000;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.user-info { min-width: 0; }
+
+.user-name {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 17px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-gems {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+  color: #555;
+}
+
+.gem-icon { font-size: 13px; margin-right: 2px; }
+
+.sidebar-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 10px 12px 0;
+}
+
+.section-title {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #666;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.knowledge-bank {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.knowledge-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 6px 0;
+  border-bottom: 1px dashed #ddd;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.k-check {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+  padding: 16px 0;
+  line-height: 1.5;
+}
+
+.sidebar-footer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.btn-ghost {
+  flex: 1;
+  height: 30px;
+  border: 1.5px solid #000;
+  background: transparent;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 1px 1px 0 #000;
+}
+
+.btn-ghost:hover  { background: #f0f0f0; }
+.btn-ghost:active { transform: translate(1px,1px); box-shadow: none; }
+
+.btn-ghost-danger            { border-color: #990000; color: #990000; }
+.btn-ghost-danger:hover      { background: #fff0f0; }
+
+/* ═══════════════════════════════════════════════════════════
+   CHAT AREA
+   ═══════════════════════════════════════════════════════════ */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 580px;
+  min-width: 0;
+  background: #fff;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.chat-header {
+  height: 36px;
+  flex-shrink: 0;
+  background: #1a1a1a;
+  background-image: repeating-linear-gradient(
+    90deg, transparent, transparent 3px,
+    rgba(255,255,255,0.07) 3px, rgba(255,255,255,0.07) 4px
+  );
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 6px;
+  border-bottom: 2px solid #000;
+}
+
+.menu-btn {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'VT323', 'Courier New', monospace;
+  flex-shrink: 0;
+}
+
+.menu-btn:hover { background: rgba(255,255,255,0.12); }
+
+.chat-title {
+  flex: 1;
+  text-align: center;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 16px;
+  letter-spacing: 3px;
+  color: #fff;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  background: #4ade80;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.header-controls {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.icon-btn {
+  height: 24px;
+  padding: 0 7px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 13px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.icon-btn:hover    { background: rgba(255,255,255,0.22); }
+.icon-btn.active   { background: #fff; color: #000; }
+.icon-btn.recording{ background: #cc0000; }
+
+/* ── Messages ─────────────────────────────────────────────── */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.welcome-message {
+  text-align: center;
+  padding: 24px 16px 8px;
+  font-family: 'VT323', 'Courier New', monospace;
+}
+
+.welcome-icon {
+  font-size: 38px;
+  font-family: 'VT323', 'Courier New', monospace;
+  margin-bottom: 8px;
+}
+
+.welcome-message h2 {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 22px;
+  letter-spacing: 3px;
+  font-weight: normal;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.welcome-message p {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* ── Message bubbles ─────────────────────────────────────── */
+.message { display: flex; flex-direction: column; }
+.message.user { align-items: flex-end; }
+.message.bot  { align-items: flex-start; }
+
+.message-bubble {
+  max-width: 88%;
+  padding: 8px 12px;
+  border: 2px solid #000;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.message.user .message-bubble {
+  background: #000;
+  color: #fff;
+  box-shadow: 2px 2px 0 #555;
+}
+
+.message.bot .message-bubble {
+  background: #fff;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.message-time {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 11px;
+  color: #999;
+  margin-top: 3px;
+  letter-spacing: 1px;
+}
+
+.message-bubble pre {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  padding: 8px;
+  margin-top: 6px;
+  overflow-x: auto;
+  font-size: 12px;
+}
+
+.message-bubble code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  font-size: 13px;
+}
+
+/* ── Typing indicator ─────────────────────────────────────── */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.typing-bubble {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.typing-bubble span {
+  width: 7px;
+  height: 7px;
+  background: #000;
+  animation: typingDot 1.2s infinite;
+}
+
+.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+  0%, 60%, 100% { opacity: 0.2; transform: scaleY(0.5); }
+  30%           { opacity: 1;   transform: scaleY(1); }
+}
+
+.typing-text {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 13px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+/* ── Input area ───────────────────────────────────────────── */
+.input-area {
+  flex-shrink: 0;
+  border-top: 2px solid #000;
+  background: #f8f8f8;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 6px 8px;
+  gap: 6px;
+}
+
+#chat-input {
+  flex: 1;
+  height: 34px;
+  border: 2px solid #000;
+  background: #fff;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 16px;
+  padding: 0 10px;
+  outline: none;
+  min-width: 0;
+}
+
+#chat-input:focus { box-shadow: 2px 2px 0 #000; }
+
+.send-btn {
+  width: 38px;
+  height: 34px;
+  border: 2px solid #000;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0 #555;
+  flex-shrink: 0;
+}
+
+.send-btn:hover  { background: #333; }
+.send-btn:active { transform: translate(2px,2px); box-shadow: none; }
+
+/* ═══════════════════════════════════════════════════════════
+   QUIZ MODAL  (absolute overlay within the 400×580 popup)
+   ═══════════════════════════════════════════════════════════ */
+.modal {
+  position: absolute;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  width: 368px;
+  background: #fff;
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0 #000;
+}
+
+.modal-header {
+  height: 28px;
+  background: #1a1a1a;
+  background-image: repeating-linear-gradient(
+    90deg, transparent, transparent 3px,
+    rgba(255,255,255,0.07) 3px, rgba(255,255,255,0.07) 4px
+  );
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 8px;
+  position: relative;
+}
+
+.modal-header h3 {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: normal;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.modal-icon {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  position: absolute;
+  right: 8px;
+}
+
+.quiz-content { padding: 14px 14px 10px; }
+
+.quiz-question {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+#quiz-answer {
+  width: 100%;
+  height: 80px;
+  border: 2px solid #000;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 15px;
+  padding: 8px;
+  resize: none;
+  outline: none;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 10px 14px;
+  border-top: 1px solid #ccc;
+}
+
+.btn-primary-sm {
+  width: auto;
+  height: 30px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAC ASSISTANT  (absolute overlay, full canvas)
+   ═══════════════════════════════════════════════════════════ */
+.mac-assistant-root {
+  position: absolute;
+  inset: 0;
+  z-index: 400;
+  overflow-y: auto;
+  background: #F5F0E8;
+}
+
+/* Make the popup fill the full 400px width */
+.mac-assistant-root .popup {
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════════ */
+.gems-toast {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #000;
+  color: #fff;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 15px;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #555;
+  z-index: 9999;
+  white-space: nowrap;
+  pointer-events: none;
+}
