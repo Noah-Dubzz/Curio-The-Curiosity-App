@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="popup.css" />
   <link rel="stylesheet" href="extension.css" />
 </head>
 <body>
@@ -85,8 +84,7 @@
           CURIO
         </div>
         <div class="header-controls">
-          <button class="icon-btn" id="tts-btn" title="Toggle voice">&gt;))</button>
-          <button class="icon-btn" id="open-assistant-btn" title="Open Assistant">[=]</button>
+          <button class="icon-btn" id="tts-btn" title="Curio speaks her replies">&gt;)) TTS</button>
         </div>
       </div>
 
@@ -107,7 +105,7 @@
 
       <div class="input-area">
         <div class="input-row">
-          <button class="icon-btn" id="mic-btn" title="Voice input">(@)</button>
+          <button class="icon-btn" id="mic-btn" title="Speak your question">(@) MIC</button>
           <input type="text" id="chat-input" placeholder="Ask Curio…" />
           <button class="send-btn" id="send-btn" title="Send">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -118,57 +116,6 @@
         </div>
       </div>
     </main>
-  </div>
-
-  <!-- ===== MAC ASSISTANT (overlay) ===== -->
-  <div id="macAssistantContainer" class="mac-assistant-root" style="display:none;">
-    <div class="popup">
-      <div class="popup-header">
-        <div class="header-controls">
-          <div class="hc-btn"></div>
-          <div class="hc-btn"></div>
-          <div class="hc-btn"></div>
-        </div>
-        <div class="header-title">Assistant v1.0</div>
-        <div style="width: 48px;"></div>
-      </div>
-      <div class="popup-body">
-        <div class="section-row">
-          <div class="section-label">&#9632; Audio Input</div>
-          <div class="status-row">
-            <div class="status-pip" id="statusPip"></div>
-            <div class="status-text" id="statusText">Ready</div>
-          </div>
-        </div>
-        <button class="rec-btn" id="recBtn">
-          <div class="sweep"></div>
-          <div class="rec-dot" id="recDot"></div>
-          <div class="rec-label" id="recLabel">Click to Record</div>
-          <div class="waveform" id="waveform">
-            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-          </div>
-        </button>
-        <div class="divider"></div>
-        <div class="section-label" style="margin-bottom: 6px;">&#9632; Text Input</div>
-        <div class="textarea-wrap">
-          <div class="textarea-header">
-            <span>Query_</span>
-            <span class="cursor-blink"></span>
-          </div>
-          <textarea class="mac-textarea" id="queryInput" placeholder="Type your question here..." maxlength="500"></textarea>
-          <div class="textarea-footer">
-            <span class="char-count" id="charCount">0 / 500</span>
-            <div class="scrollbox"></div>
-          </div>
-        </div>
-        <button class="submit-btn" id="submitBtn">Submit &#9658;</button>
-      </div>
-      <div class="popup-footer">
-        <div class="footer-text">System 6.0.8</div>
-        <div class="footer-text">&#9670; Mac Assistant</div>
-      </div>
-    </div>
   </div>
 
   <!-- ===== QUIZ MODAL ===== -->
@@ -190,7 +137,6 @@
     </div>
   </div>
 
-  <script src="popup.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

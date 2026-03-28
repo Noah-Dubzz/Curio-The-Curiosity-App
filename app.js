@@ -514,29 +514,46 @@ function toggleMic() {
 
   recognition            = new SpeechRecognition();
   recognition.continuous     = false;
-  recognition.interimResults = false;
+  recognition.interimResults = true;
   recognition.lang           = 'en-US';
+
+  const chatInput = document.getElementById('chat-input');
+  const micBtn    = document.getElementById('mic-btn');
 
   recognition.onstart  = () => {
     isRecording = true;
-    document.getElementById('mic-btn').classList.add('recording');
+    if (micBtn) micBtn.classList.add('recording');
+    if (chatInput) {
+      chatInput.placeholder = '( Listening... )';
+      chatInput.value = '';
+    }
   };
 
   recognition.onresult = (e) => {
-    const transcript = e.results[0][0].transcript;
-    document.getElementById('chat-input').value = transcript;
-    document.getElementById('chat-input').focus();
+    // Show interim results as placeholder while user speaks
+    let interim = '';
+    let final   = '';
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final   += e.results[i][0].transcript;
+      else                       interim += e.results[i][0].transcript;
+    }
+    if (chatInput) chatInput.value = final || interim;
   };
 
   recognition.onend    = () => {
     isRecording = false;
-    document.getElementById('mic-btn').classList.remove('recording');
+    if (micBtn) micBtn.classList.remove('recording');
+    if (chatInput) {
+      chatInput.placeholder = 'Ask Curio something\u2026';
+      chatInput.focus();
+    }
     recognition = null;
   };
 
   recognition.onerror  = () => {
     isRecording = false;
-    document.getElementById('mic-btn').classList.remove('recording');
+    if (micBtn) micBtn.classList.remove('recording');
+    if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
     recognition = null;
   };
 
@@ -578,10 +595,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const ttsBtn = document.getElementById('tts-btn');
   if (ttsBtn) ttsBtn.addEventListener('click', toggleTTS);
-  const assistantBtn = document.getElementById('open-assistant-btn');
-  if (assistantBtn) assistantBtn.addEventListener('click', () => {
-    if (typeof window.openAssistant === 'function') window.openAssistant();
-  });
 
   // Input row
   const micBtn = document.getElementById('mic-btn');
