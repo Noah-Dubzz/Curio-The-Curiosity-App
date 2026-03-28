@@ -13,17 +13,13 @@
   --gray-light: #cccccc;
   --gray-mid:   #aaaaaa;
   --gray-dark:  #555555;
-  --desktop:    #008080;      /* classic teal desktop */
-  --select:     #000080;      /* selection blue */
+  --desktop:    #008080;
+  --select:     #000080;
   --select-txt: #ffffff;
   --font-main:  'Chicago', 'VT323', 'Courier New', monospace;
   --font-mono:  'Courier New', monospace;
   --border:     2px solid #000;
   --radius:     0px;
-}
-
-html {
-  zoom: 1.25;
 }
 
 html, body {
@@ -35,7 +31,7 @@ html, body {
   -webkit-font-smoothing: none;
 }
 
-/* Desktop wallpaper — classic Mac checkered/noise pattern */
+/* Desktop wallpaper */
 body {
   background-color: var(--desktop);
   background-image:
@@ -50,8 +46,7 @@ body {
 /* ── Utility ──────────────────────────────────────── */
 .hidden { display: none !important; }
 
-/* ── Mac Window mixin (reused everywhere) ────────── */
-/* Outer: 2px black border + raised bevel */
+/* ── Mac Window mixin ────────── */
 .mac-window {
   border: var(--border);
   background: var(--white);
@@ -63,13 +58,12 @@ body {
 .mac-titlebar {
   background: var(--white);
   border-bottom: var(--border);
-  height: 22px;
+  height: 30px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 6px;
+  gap: 8px;
+  padding: 0 8px;
   position: relative;
-  /* Horizontal stripe pattern on title bar */
   background-image: repeating-linear-gradient(
     180deg,
     var(--white) 0px, var(--white) 1px,
@@ -83,18 +77,18 @@ body {
   left: 50%;
   transform: translateX(-50%);
   background: var(--white);
-  padding: 0 10px;
-  font-size: 12px;
+  padding: 0 12px;
+  font-size: 15px;
   font-family: var(--font-main);
   font-weight: bold;
   white-space: nowrap;
   letter-spacing: 0.5px;
 }
 
-/* Close box (little square top-left of windows) */
+/* Close box */
 .mac-close-box {
-  width: 13px;
-  height: 13px;
+  width: 18px;
+  height: 18px;
   border: var(--border);
   background: var(--white);
   flex-shrink: 0;
@@ -102,7 +96,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 8px;
+  font-size: 10px;
 }
 .mac-close-box:hover { background: var(--black); color: var(--white); }
 
@@ -112,12 +106,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
 }
 
 .setup-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   border: var(--border);
   background: var(--white);
   box-shadow: 4px 4px 0 var(--black);
@@ -127,7 +121,7 @@ body {
 .setup-card::before {
   content: '';
   display: block;
-  height: 22px;
+  height: 30px;
   border-bottom: var(--border);
   background-image: repeating-linear-gradient(
     180deg,
@@ -138,20 +132,20 @@ body {
 
 .setup-logo {
   text-align: center;
-  padding: 28px 32px 18px;
+  padding: 36px 44px 22px;
   border-bottom: var(--border);
 }
 
 .logo-icon {
-  font-size: 44px;
+  font-size: 56px;
   line-height: 1;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   image-rendering: pixelated;
 }
 
 .setup-logo h1 {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -159,32 +153,32 @@ body {
 }
 
 .tagline {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--gray-dark);
-  margin-top: 5px;
+  margin-top: 6px;
   letter-spacing: 0.5px;
 }
 
-.setup-form { padding: 22px 32px 28px; }
+.setup-form { padding: 28px 40px 36px; }
 
-.form-group { margin-bottom: 18px; }
+.form-group { margin-bottom: 22px; }
 
 .form-group label {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-family: var(--font-main);
 }
 
 .form-group input {
   width: 100%;
-  padding: 6px 8px;
+  padding: 9px 12px;
   border: var(--border);
   background: var(--white);
-  font-size: 14px;
+  font-size: 16px;
   font-family: var(--font-main);
   color: var(--black);
   outline: none;
@@ -198,18 +192,18 @@ body {
 
 .form-group small {
   display: block;
-  margin-top: 5px;
-  font-size: 11px;
+  margin-top: 6px;
+  font-size: 13px;
   color: var(--gray-dark);
 }
 
 /* ── Buttons ──────────────────────────────────────── */
 .btn-primary {
   width: 100%;
-  padding: 8px 16px;
+  padding: 11px 22px;
   background: var(--white);
   border: var(--border);
-  font-size: 14px;
+  font-size: 16px;
   font-family: var(--font-main);
   font-weight: bold;
   cursor: pointer;
@@ -238,8 +232,8 @@ body {
 
 .btn-primary-sm {
   width: auto;
-  padding: 6px 18px;
-  font-size: 12px;
+  padding: 8px 22px;
+  font-size: 14px;
 }
 
 /* ── App Layout ───────────────────────────────────── */
@@ -247,14 +241,14 @@ body {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  padding: 12px;
-  gap: 10px;
+  padding: 14px;
+  gap: 12px;
 }
 
 /* ── Sidebar ──────────────────────────────────────── */
 .sidebar {
-  width: 220px;
-  min-width: 220px;
+  width: 270px;
+  min-width: 270px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -267,13 +261,13 @@ body {
 .sidebar.collapsed { width: 0; min-width: 0; border: none; box-shadow: none; }
 
 .sidebar-brand {
-  height: 22px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   border-bottom: var(--border);
-  padding: 0 8px;
+  padding: 0 10px;
   position: relative;
   background-image: repeating-linear-gradient(
     180deg,
@@ -284,12 +278,12 @@ body {
 }
 
 .brand-name {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: bold;
   letter-spacing: 2px;
   text-transform: uppercase;
   background: var(--white);
-  padding: 0 8px;
+  padding: 0 10px;
   position: relative;
   z-index: 1;
 }
@@ -299,16 +293,16 @@ body {
 .user-card {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 14px 16px;
   border-bottom: var(--border);
   background: var(--white);
   flex-shrink: 0;
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 42px;
   border: var(--border);
   background: var(--black);
   color: var(--white);
@@ -316,17 +310,17 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 15px;
+  font-size: 18px;
   flex-shrink: 0;
   font-family: var(--font-main);
 }
 
-.user-name { font-weight: bold; font-size: 13px; letter-spacing: 0.5px; }
+.user-name { font-weight: bold; font-size: 15px; letter-spacing: 0.5px; }
 
 .user-gems {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--gray-dark);
-  margin-top: 1px;
+  margin-top: 2px;
   letter-spacing: 0.5px;
 }
 
@@ -334,46 +328,45 @@ body {
 
 .sidebar-section {
   flex: 1;
-  padding: 12px;
+  padding: 14px;
   overflow-y: auto;
 }
 
 .section-title {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--black);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--black);
-  padding-bottom: 4px;
+  padding-bottom: 5px;
 }
 
-.knowledge-bank { display: flex; flex-direction: column; gap: 5px; }
+.knowledge-bank { display: flex; flex-direction: column; gap: 6px; }
 
 .empty-state {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--gray-dark);
   line-height: 1.6;
   text-align: center;
-  padding: 18px 0;
   border: 1px dashed var(--gray-dark);
-  padding: 14px 8px;
+  padding: 18px 10px;
 }
 
 .knowledge-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
+  gap: 8px;
+  padding: 6px 10px;
   border: 1px solid var(--black);
   background: var(--white);
-  font-size: 12px;
+  font-size: 14px;
   animation: slideIn 0.15s ease;
   box-shadow: 1px 1px 0 var(--black);
 }
 
-.knowledge-item .k-check { font-size: 11px; flex-shrink: 0; }
+.knowledge-item .k-check { font-size: 13px; flex-shrink: 0; }
 
 @keyframes slideIn {
   from { opacity: 0; transform: translateX(-8px); }
@@ -381,10 +374,10 @@ body {
 }
 
 .sidebar-footer {
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-top: var(--border);
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -393,8 +386,8 @@ body {
   background: var(--white);
   border: var(--border);
   color: var(--black);
-  padding: 5px 8px;
-  font-size: 11px;
+  padding: 7px 10px;
+  font-size: 13px;
   font-family: var(--font-main);
   cursor: pointer;
   text-transform: uppercase;
@@ -422,11 +415,11 @@ body {
 
 /* ── Chat Header (title bar) ─────────────────────── */
 .chat-header {
-  height: 22px;
+  height: 30px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 8px;
+  gap: 8px;
+  padding: 0 10px;
   border-bottom: var(--border);
   flex-shrink: 0;
   position: relative;
@@ -440,14 +433,14 @@ body {
 .menu-btn {
   background: var(--white);
   border: var(--border);
-  font-size: 10px;
+  font-size: 12px;
   cursor: pointer;
   color: var(--black);
-  padding: 1px 4px;
+  padding: 0;
   line-height: 1;
   font-family: var(--font-main);
-  width: 13px;
-  height: 13px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -461,11 +454,11 @@ body {
   left: 50%;
   transform: translateX(-50%);
   background: var(--white);
-  padding: 0 12px;
+  padding: 0 14px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 15px;
   font-weight: bold;
   letter-spacing: 1px;
   white-space: nowrap;
@@ -474,8 +467,8 @@ body {
 }
 
 .status-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: var(--black);
   border-radius: 50%;
   animation: blink 2s step-end infinite;
@@ -488,7 +481,7 @@ body {
 
 .header-controls {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   margin-left: auto;
   z-index: 1;
 }
@@ -496,9 +489,9 @@ body {
 .icon-btn {
   background: var(--white);
   border: var(--border);
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
-  padding: 1px 5px;
+  padding: 2px 7px;
   line-height: 1;
   font-family: var(--font-main);
 }
@@ -509,12 +502,11 @@ body {
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 20px;
+  padding: 22px 26px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   background: var(--white);
-  /* Subtle scanline effect */
   background-image: repeating-linear-gradient(
     0deg, transparent, transparent 17px, rgba(0,0,0,0.018) 17px, rgba(0,0,0,0.018) 18px
   );
@@ -522,30 +514,30 @@ body {
 
 .welcome-message {
   text-align: center;
-  padding: 40px 20px 20px;
+  padding: 50px 24px 24px;
   color: var(--gray-dark);
   flex-shrink: 0;
 }
 
 .welcome-icon {
-  font-size: 48px;
+  font-size: 60px;
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   image-rendering: pixelated;
 }
 
 .welcome-message h2 {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 900;
   color: var(--black);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 2px;
   font-family: var(--font-main);
 }
 
-.welcome-message p { font-size: 13px; line-height: 1.7; color: var(--gray-dark); }
-.welcome-sub { margin-top: 6px; font-weight: bold; color: var(--black) !important; }
+.welcome-message p { font-size: 16px; line-height: 1.7; color: var(--gray-dark); }
+.welcome-sub { margin-top: 8px; font-weight: bold; color: var(--black) !important; }
 
 /* Message bubbles */
 .message {
@@ -564,8 +556,8 @@ body {
 .message.bot   { align-self: flex-start; align-items: flex-start; }
 
 .message-bubble {
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: 11px 16px;
+  font-size: 15px;
   line-height: 1.65;
   word-break: break-word;
   border: var(--border);
@@ -585,9 +577,9 @@ body {
 }
 
 .message-time {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--gray-dark);
-  margin-top: 3px;
+  margin-top: 4px;
   padding: 0 2px;
   letter-spacing: 0.3px;
 }
@@ -597,48 +589,48 @@ body {
   background: var(--black);
   color: var(--white);
   border: var(--border);
-  padding: 10px 12px;
-  margin: 8px 0;
+  padding: 12px 14px;
+  margin: 10px 0;
   overflow-x: auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .message.bot .message-bubble code {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .message.bot .message-bubble p code {
   background: var(--black);
   color: var(--white);
   padding: 1px 5px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 /* ── Typing Indicator ─────────────────────────────── */
 .typing-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 20px 10px;
+  gap: 10px;
+  padding: 6px 26px 14px;
   flex-shrink: 0;
 }
 
 .typing-bubble {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   background: var(--white);
   border: var(--border);
-  padding: 6px 10px;
+  padding: 8px 13px;
   box-shadow: 2px 2px 0 var(--black);
 }
 
 .typing-bubble span {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: var(--black);
-  border-radius: 0;  /* square dots — classic Mac */
+  border-radius: 0;
   animation: bounce 0.9s step-end infinite;
 }
 
@@ -650,11 +642,11 @@ body {
   50%       { opacity: 1;   transform: scaleY(1.6); }
 }
 
-.typing-text { font-size: 11px; color: var(--gray-dark); letter-spacing: 0.5px; }
+.typing-text { font-size: 13px; color: var(--gray-dark); letter-spacing: 0.5px; }
 
 /* ── Input Area ───────────────────────────────────── */
 .input-area {
-  padding: 10px 14px 12px;
+  padding: 12px 18px 14px;
   background: var(--white);
   border-top: var(--border);
   flex-shrink: 0;
@@ -663,9 +655,9 @@ body {
 .input-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border: var(--border);
-  padding: 4px 6px;
+  padding: 6px 8px;
   background: var(--white);
   box-shadow: inset 1px 1px 0 var(--gray-dark);
 }
@@ -679,7 +671,7 @@ body {
   background: transparent;
   border: none;
   outline: none;
-  font-size: 13px;
+  font-size: 15px;
   font-family: var(--font-main);
   color: var(--black);
   min-width: 0;
@@ -688,8 +680,8 @@ body {
 .input-row input::placeholder { color: var(--gray-mid); }
 
 .send-btn {
-  width: 30px;
-  height: 26px;
+  width: 38px;
+  height: 32px;
   background: var(--black);
   border: var(--border);
   display: flex;
@@ -719,9 +711,9 @@ body {
   transform: translateX(-50%);
   background: var(--black);
   color: var(--white);
-  padding: 8px 22px;
+  padding: 10px 28px;
   border: var(--border);
-  font-size: 13px;
+  font-size: 15px;
   font-family: var(--font-main);
   font-weight: bold;
   letter-spacing: 1px;
@@ -746,13 +738,13 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 200;
-  padding: 20px;
+  padding: 24px;
 }
 
 .modal-card {
   background: var(--white);
   border: var(--border);
-  max-width: 420px;
+  max-width: 520px;
   width: 100%;
   box-shadow: 5px 5px 0 var(--black);
   animation: modalIn 0.1s step-end;
@@ -766,11 +758,11 @@ body {
 /* Modal title bar */
 .modal-header {
   border-bottom: var(--border);
-  padding: 0 10px;
-  height: 22px;
+  padding: 0 12px;
+  height: 30px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   position: relative;
   background-image: repeating-linear-gradient(
     180deg,
@@ -779,57 +771,56 @@ body {
   );
 }
 
-.modal-icon { font-size: 12px; background: var(--white); padding: 0 4px; position: relative; z-index: 1; }
+.modal-icon { font-size: 14px; background: var(--white); padding: 0 5px; position: relative; z-index: 1; }
 
 .modal-header h3 {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   letter-spacing: 1px;
   text-transform: uppercase;
   background: var(--white);
-  padding: 0 6px;
+  padding: 0 8px;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
 }
 
-.modal-header p { display: none; } /* topic shown in quiz content instead */
+.modal-header p { display: none; }
 
-.quiz-content { padding: 16px 18px; }
+.quiz-content { padding: 20px 24px; }
 
 #quiz-topic-label {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--gray-dark);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* Show the topic label inside quiz content */
 .modal-header p + * { }
 
 .quiz-question {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: bold;
   color: var(--black);
   line-height: 1.65;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-family: var(--font-main);
 }
 
 .quiz-content textarea {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 13px;
   border: var(--border);
   background: var(--white);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
   font-family: var(--font-main);
   color: var(--black);
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
   outline: none;
   box-shadow: inset 1px 1px 0 var(--gray-dark);
 }
@@ -837,16 +828,16 @@ body {
 
 .modal-footer {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   justify-content: flex-end;
-  padding: 10px 18px 14px;
+  padding: 12px 22px 16px;
   border-top: var(--border);
 }
 
 .modal-ghost-btn { color: var(--black); flex: none; }
 
-/* ── Scrollbars (pixelated Mac style) ───────────────── */
-::-webkit-scrollbar { width: 14px; }
+/* ── Scrollbars ───────────────────────────────────── */
+::-webkit-scrollbar { width: 16px; }
 ::-webkit-scrollbar-track { background: var(--white); border-left: 1px solid var(--black); }
 ::-webkit-scrollbar-thumb {
   background: var(--white);
@@ -859,7 +850,7 @@ body {
 ::-webkit-scrollbar-button {
   background: var(--white);
   border: 1px solid var(--black);
-  height: 14px;
+  height: 16px;
 }
 
 /* ── Responsive ─────────────────────────────────────── */
