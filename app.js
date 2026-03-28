@@ -1,5 +1,5 @@
 // ============================================================
-//  Curio – The Curiosity App
+//  Curio - The Curiosity App
 //  Powered by Google Gemini
 // ============================================================
 
@@ -83,7 +83,7 @@ function escapeHtml(text) {
 }
 
 /**
- * Minimal Markdown → HTML renderer (safe: HTML-escaped first).
+ * Minimal Markdown -> HTML renderer (safe: HTML-escaped first).
  */
 function formatMessage(text) {
   // 1. Escape raw HTML so nothing from the API can inject markup
@@ -100,7 +100,7 @@ function formatMessage(text) {
   // 4. Bold  **...**
   out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-  // 5. Newlines → <br>
+  // 5. Newlines -> <br>
   out = out.replace(/\n/g, '<br>');
 
   return out;
@@ -210,7 +210,7 @@ function newConversation() {
   welcome.className = 'welcome-message';
   welcome.id        = 'welcome-msg';
   welcome.innerHTML = `
-    <div class="welcome-icon">&#x1F9E0;</div>
+    <div class="welcome-icon">:^)</div>
     <h2>Hi again, ${escapeHtml(userName)}!</h2>
     <p>Ready for a new topic?<br />What would you like to learn?</p>
   `;
@@ -234,7 +234,7 @@ async function geminiRequest(payload) {
     let errMsg = `API error ${response.status}`;
     try {
       const errData = await response.json();
-      // Netlify returns { error: "string" } — not { error: { message } }
+      // Netlify returns { error: "string" }  -  not { error: { message } }
       errMsg = errData?.error?.message ?? errData?.error ?? errMsg;
     } catch (_) { /* ignore */ }
     throw new Error(errMsg);
@@ -316,7 +316,7 @@ async function sendMessage() {
       conversationHistory.pop();
     }
     const friendly = err.message.includes('503')
-      ? 'Curio is a little overloaded right now — give it a second and try again!'
+      ? 'Curio is a little overloaded right now  -  give it a second and try again!'
       : err.message.includes('403') || err.message.toLowerCase().includes('api key')
       ? 'API key error (403). The Gemini API key needs to be updated in Netlify. Get a new key at aistudio.google.com and update GEMINI_API_KEY in the Netlify dashboard.'
       : `Something went wrong: ${err.message}`;
@@ -351,7 +351,7 @@ function showLearnedPopup(topic) {
         <h3>Knowledge Unlocked</h3>
       </div>
       <div class="quiz-content" style="text-align:center;padding:28px 24px 20px">
-        <div style="font-size:40px;margin-bottom:10px">&#x1F9E0;</div>
+        <div style="font-size:40px;margin-bottom:10px">:^)</div>
         <div style="font-size:12px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;color:var(--gray-dark)">You learned:</div>
         <div style="font-size:22px;font-weight:bold;margin-bottom:16px">${escapeHtml(topic)}</div>
         <div style="font-size:14px;color:var(--gray-dark)">Attempt the challenge to earn gems, or keep exploring.</div>
@@ -381,9 +381,9 @@ function renderKnowledgeBank() {
   }
   container.innerHTML = knowledgeBank
     .map(item => `<div class="knowledge-item" data-topic="${escapeHtml(item)}" style="cursor:pointer" title="Tap to attempt challenge">
-      <span class="k-check">&#x2713;</span>
+      <span class="k-check">[v]</span>
       <span>${escapeHtml(item)}</span>
-      <span style="margin-left:auto;font-size:11px;opacity:0.45">&#9658;</span>
+      <span style="margin-left:auto;font-size:11px;opacity:0.45">></span>
     </div>`)
     .join('');
   container.querySelectorAll('.knowledge-item').forEach(el => {
@@ -477,7 +477,7 @@ async function submitQuiz() {
     // Show feedback in place of the textarea
     document.getElementById('quiz-answer').style.display = 'none';
     document.getElementById('quiz-question-text').innerHTML =
-      `<div style="font-size:26px;text-align:center;margin-bottom:10px">${isCorrect ? '&#x1F389;' : '&#x1F4A1;'}</div>` +
+      `<div style="font-size:26px;text-align:center;margin-bottom:10px">${isCorrect ? '\o/' : '(?)'}</div>` +
       formatMessage(feedback.replace(/\b(CORRECT|INCORRECT)\b\s*$/, '').trim());
 
     submitBtn.classList.add('hidden');
@@ -601,7 +601,7 @@ async function toggleMic() {
     if (micBtn) micBtn.classList.remove('recording');
 
     if (!audioChunks.length) {
-      if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
+      if (chatInput) chatInput.placeholder = 'Ask Curio something...';
       return;
     }
 
@@ -628,17 +628,17 @@ async function toggleMic() {
       if (!res.ok) throw new Error(result.error || 'Transcription failed');
 
       const transcript = result.transcript?.trim() || '';
-      if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
+      if (chatInput) chatInput.placeholder = 'Ask Curio something...';
       if (transcript) {
         chatInput.value = transcript;
         sendMessage();
       } else {
-        showToast('( No speech detected \u2014 try again )');
+        showToast('( No speech detected  -  try again )');
       }
     } catch (err) {
       console.error('Transcription error:', err);
-      if (chatInput) chatInput.placeholder = 'Ask Curio something\u2026';
-      showToast('( Transcription failed \u2014 try again )');
+      if (chatInput) chatInput.placeholder = 'Ask Curio something...';
+      showToast('( Transcription failed  -  try again )');
     }
 
     audioChunks   = [];
